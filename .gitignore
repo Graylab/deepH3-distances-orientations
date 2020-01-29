@@ -1,0 +1,94 @@
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# PyCharm
+.idea/
+venv/
+__pycache__/
+
+# Project Specific (C++)
+bin/
+CMakeFiles/
+cmake_lib
+CMakeCache.txt
+CMakeLists.txt
+*.cmake
+
+# Protein files
+*.pdb
+*.fasta
+*.aln  # Multiple Sequence Alignment (MSA) files
+
+# Condor error output directory
+data/scripts/outerr/
+
+# Data directories
+alignments/
+antibody_database/
+antibody_dataset/
+casp11/
+casp11_h5/
+dists/
+fastas/
+flanked_h3_fastas/
+flanked_h3_pdbs/
+MNIST/
+pssms/
+single_chain_fastas/
+tertiary/
+alignment_jackhmmer/
+jackhmmer_out/
+profiles/
+
+
+# MSA programs
+CCMgen/
+CCMpred/
+
+openprotein/
+proteinnet/
+
+# Etc.
+*.p  # Pickle files
+*.swp
+*.csv
+*.tsv
+*.txt
+*.zip
+.ipynb_checkpoints/
+deeph3/temp/
+deeph3/models/
+deeph3/data/scripts/outerr/
+ROSETTA_CRASH.log
+deeph3/WeightedCrossEntropyLoss.pyc
+deeph3/__init__.pyc
