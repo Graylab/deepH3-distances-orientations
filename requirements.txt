@@ -1,0 +1,10 @@
+pylatexenc
+pandas==0.24.2
+torchvision==0.3.0
+adabound==0.0.5
+numpy==1.16.4
+tqdm==4.32.2
+matplotlib==3.1.0
+torch==1.1.0
+h5py==2.9.0
+biopython==1.73
