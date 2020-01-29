@@ -2,6 +2,9 @@
 A deep residual network architecture to predict probability distributions of 
 inter-residue distances for CDR H3 loops in antibodies.
 
+ResNet part of the code is re-implemented from https://github.com/KaimingHe/resnet-1k-layers which was based on \
+https://github.com/facebook/fb.resnet.torch
+
 ## CLI Experimentation
 This repository supports experimenting on H5 datasets for antibody and 
 ProteinNet data through a CLI.
@@ -26,7 +29,7 @@ Use the '-h' or '--help' flag for a full list and description of flags.
 
 ## Authors
 * **Carlos Guerra** - [cguerramain](https://github.com/cguerramain)
-* **Sai Pooja** - [heiidii](https://github.com/heiidii)
+* **Sai Pooja Mahajan** - [heiidii](https://github.com/heiidii)
 * **Jeff Ruffolo** - [jeffreyruffolo])https://github.com/jeffreyruffolo)
 
 ## Research Advisors
