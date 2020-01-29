@@ -9,6 +9,7 @@ https://github.com/facebook/fb.resnet.torch
 This repository supports experimenting on H5 datasets for antibody and 
 ProteinNet data through a CLI.
 
+## Model Training
 Here is an example of a command to train a model on antibody H5 datasets 
 located in the /foo/bar/antibody_h5 directory. The working directory is 
 deeph3 and the model is saved every 20 batches to the 
