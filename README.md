@@ -28,8 +28,14 @@ is /foo/bar/antibody_h5/antibody_validation.h5.
 python ./cli/generate_h5_antibody_files_cli.py /foo/bar/antibody_pdbs \
 /foo/bar/antibody_fastas /foo/bar/antibody_h5/antibody_validation.h5
 ```
+For example pdb and fasta files see: /deeph3/data/antibody_dataset/fastas_testrun/
+and /deeph3/data/antibody_dataset/pdbs_testrun/
 
 Use the '-h' or '--help' flag for a full list and description of flags.
+
+## Requirements
+
+torch, adabound, tensorboard (1.4 or higher) (see requirements.txt for the complete list)
 
 ## Authors
 * **Carlos Guerra** - [cguerramain](https://github.com/cguerramain)
