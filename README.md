@@ -39,7 +39,7 @@ Model trained on ~ 1400 antibodies from the SABDAb Database is available here
 
 ## Requirements
 
-torch, adabound, tensorboard (1.4 or higher) (see requirements.txt for the complete list)
+torch, tensorboard (1.4 or higher), biopython (see requirements.txt for the complete list)
 
 ## Authors
 * **Carlos Guerra** - [cguerramain](https://github.com/cguerramain)
