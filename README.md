@@ -6,8 +6,7 @@ ResNet part of the code is re-implemented from https://github.com/KaimingHe/resn
 https://github.com/facebook/fb.resnet.torch
 
 ## CLI Experimentation
-This repository supports experimenting on H5 datasets for antibody and 
-ProteinNet data through a CLI.
+This repository supports experimenting on H5 datasets for antibody data through a CLI.
 
 ## Model Training
 Here is an example of a command to train a model on antibody H5 datasets 
@@ -17,12 +16,6 @@ deeph3 and the model is saved every 20 batches to the
 ```buildoutcfg
 python ./cli/antibody_trainer.py /foo/bar/antibody_h5 \
 --validation_file antibody_validation.h5 --training_file antibody_validation.h5 \
---epochs 4 --batch_size 1 --save_every 20 --models_dir /baz/boo/models
-```
-Similarly for a model trained with ProteinNet H5 files:
-```buildoutcfg
-python ./cli/pnet_trainer.py /foo/bar/casp11_h5 \
---validation_file validation.h5 --training_file training_30.h5 \
 --epochs 4 --batch_size 1 --save_every 20 --models_dir /baz/boo/models
 ```
 
