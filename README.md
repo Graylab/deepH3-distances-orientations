@@ -33,6 +33,10 @@ and /deeph3/data/antibody_dataset/pdbs_testrun/
 
 Use the '-h' or '--help' flag for a full list and description of flags.
 
+## Trained Model 
+Model trained on ~ 1400 antibodies from the SABDAb Database is available here
+/deeph3/models/adam_opt_lr01_da/
+
 ## Requirements
 
 torch, adabound, tensorboard (1.4 or higher) (see requirements.txt for the complete list)
