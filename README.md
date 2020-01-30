@@ -19,6 +19,16 @@ python ./cli/antibody_trainer.py /foo/bar/antibody_h5 \
 --epochs 4 --batch_size 1 --save_every 20 --models_dir /baz/boo/models
 ```
 
+## Generating H5 file from pdb and fasta files
+To generate H5 files from pdb and fastas files, use the command below from the
+deeph3 working directory with pdb files stored in /foo/bar/antibody_pdbs and 
+fasta files stored in /foo/bar/antibody_fastas. The output h5 file in this example
+is /foo/bar/antibody_h5/antibody_validation.h5.
+```
+python ./cli/generate_h5_antibody_files_cli.py /foo/bar/antibody_pdbs \
+/foo/bar/antibody_fastas /foo/bar/antibody_h5/antibody_validation.h5
+```
+
 Use the '-h' or '--help' flag for a full list and description of flags.
 
 ## Authors
