@@ -44,7 +44,7 @@ torch, tensorboard (1.4 or higher), biopython (see requirements.txt for the comp
 ## Authors
 * **Carlos Guerra** - [cguerramain](https://github.com/cguerramain)
 * **Sai Pooja Mahajan** - [heiidii](https://github.com/heiidii)
-* **Jeff Ruffolo** - [jeffreyruffolo])https://github.com/jeffreyruffolo)
+* **Jeff Ruffolo** - [jeffreyruffolo](https://github.com/jeffreyruffolo)
 
 ## Research Advisors
 * **Jeremias Sulam**
