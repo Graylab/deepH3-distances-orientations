@@ -39,7 +39,7 @@ deeph3/models/adam_opt_lr01_da/
 
 ## Requirements
 
-torch, tensorboard (1.4 or higher), biopython (see requirements.txt for the complete list)
+Python3.6/3.7, torch, tensorboard (1.4 or higher), biopython (see requirements.txt for the complete list)
 
 ## Authors
 * **Carlos Guerra** - [cguerramain](https://github.com/cguerramain)
