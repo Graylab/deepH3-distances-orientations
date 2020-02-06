@@ -47,7 +47,7 @@ Python3.6/3.7, torch, tensorboard (1.4 or higher), biopython (see requirements.t
 * **Jeff Ruffolo** - [jeffreyruffolo](https://github.com/jeffreyruffolo)
 
 ## Research Advisors
-* **Jeremias Sulam**
+* **Jeremias Sulam** - [jsulam](https://github.com/jsulam)
 * **Jeffrey Gray** - [jjgray](https://github.com/jjgray)
 
 ## References
