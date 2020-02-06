@@ -1,11 +1,11 @@
 import torch
 import torch.nn as nn
 from torch.optim import SGD, Adam
-from torch.optim.lr_scheduler import ReduceLROnPlateau
-from deeph3 import H3ResNet, WeightedCrossEntropyLoss
-from deeph3.data_util import h5_proteinnet_dataloader, h5_antibody_dataloader, get_default_device, to_device
-from deeph3.resnets import ResBlock2D, ResBlock1D
 from adabound import AdaBound
+from torch.optim.lr_scheduler import ReduceLROnPlateau
+from deeph3 import H3ResNet
+from deeph3.data_util import h5_antibody_dataloader, get_default_device, to_device
+from deeph3.resnets import ResBlock2D, ResBlock1D
 from os import mkdir
 from os.path import dirname, join, isdir, isfile, basename, split
 import time
@@ -13,10 +13,8 @@ import time
 
 OPTMIZERS = {'SGD': SGD, 'AdaBound': AdaBound, 'Adam': Adam}
 LR_MODIFIERS = {'ReduceLROnPlateau': ReduceLROnPlateau}
-DATA_LOADER_MAKERS = {'ab': h5_antibody_dataloader,
-                      'pnet': h5_proteinnet_dataloader}
-CRITERIONS = {'CrossEntropyLoss': nn.CrossEntropyLoss,
-              'WeightedCrossEntropyLoss': WeightedCrossEntropyLoss}
+DATA_LOADER_MAKERS = {'ab': h5_antibody_dataloader}
+CRITERIONS = {'CrossEntropyLoss': nn.CrossEntropyLoss}
 
 
 def get_lr_modifier_name(lr_modifier):
@@ -67,42 +65,6 @@ def load_model(file_name):
     model.eval()
 
     return model
-
-
-def file_load_checkpoint_dict(file_name):
-    """Loads the model checkpoint dictionary from its file name"""
-    raise NotImplementedError('Updates needed from OPTIMIZER dict creation')
-    if not isfile(file_name):
-        raise FileNotFoundError(f'No file at {file_name}')
-    checkpoint_dict = torch.load(file_name)
-    model_state = checkpoint_dict['model_state_dict']
-
-    in_layer = list(model_state.keys())[0]
-    out_layer = list(model_state.keys())[-1]
-    num_out_bins = model_state[out_layer].shape[0]
-    in_planes = model_state[in_layer].shape[1]
-
-    num_blocks1D, num_blocks2D = parse_file_name(file_name)
-
-    resnet = H3ResNet(in_planes=in_planes, num_out_bins=num_out_bins,
-                      num_blocks1D=num_blocks1D, num_blocks2D=num_blocks2D)
-    model = nn.Sequential(resnet)
-    model.load_state_dict(model_state)
-    model.train()
-
-    #optimizer = AdaBound(model.parameters(), lr=lr, final_lr=final_lr)
-    # optimizer.load_state_dict(checkpoint_dict['optimizer_state_dict'])
-
-    batch_loader = checkpoint_dict['batch_loader']
-    epoch = checkpoint_dict['epoch']
-    batch = checkpoint_dict['batch']
-    criterion = checkpoint_dict['criterion']
-    validation_losses = checkpoint_dict['validation_losses']
-    training_losses = checkpoint_dict['training_losses']
-
-    return dict(batch=batch, batch_loader=batch_loader, model=model,
-                criterion=criterion, optimizer=optimizer, epoch=epoch,
-                validation_losses=validation_losses, training_losses=training_losses)
 
 
 def load_checkpoint_dict(

@@ -1,7 +1,6 @@
 import torch
 import torch.sparse as sparse
 from deeph3.util import pairwise_contact_probs, fill_diagonally_, mask_matrix_
-from deeph3.viz import heatmap2d
 
 
 seperation_ranges = {'short': [6, 11], 'medium': [12, 23],

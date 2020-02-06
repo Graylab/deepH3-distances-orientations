@@ -2,7 +2,6 @@ import torch
 import pandas as pd
 from time import time
 from tqdm import tqdm
-from deeph3.viz import heatmap2d
 from deeph3.util import time_diff, binned_matrix, binned_mat_to_values
 from deeph3.data_util import Batch, H5AntibodyDataset, to_device, get_default_device
 from deeph3.contact_metrics import batch_binned_dist_mat_contact_metrics
@@ -10,7 +9,6 @@ from deeph3.data_util.H5AntibodyDataset import h5_antibody_dataloader
 import torchvision
 from torch.utils.tensorboard import SummaryWriter
 import matplotlib.pyplot as plt
-from os.path import join
 
 
 def test_model(test_loader, model, criterion, writer, max_iter=None, device=None,
@@ -60,8 +58,6 @@ def test_model(test_loader, model, criterion, writer, max_iter=None, device=None
                 binned_mat = binned_matrix(outputs.transpose(0, 1)[batch_i])
                 for output_name, output in zip(output_names, binned_mat):
                     fig = plt.figure()
-                    heatmap2d(output, title=output_name, color_min=0,
-                              color_max=25, keep_open=True)
                     plt.tight_layout()
                     plt.close()
                     writer.add_figure(ids[batch_i].decode(
@@ -225,7 +221,6 @@ if __name__ == '__main__':
     def main():
         import pickle
         import matplotlib.pyplot as plt
-        from deeph3.viz import heatmap2d
         from deeph3 import load_model
 
         # csv = '/Users/cguerra3/Rosetta_REU/deep-H3-loop-prediction/deeph3/all_full_antibody_contact_metrics_1.csv'

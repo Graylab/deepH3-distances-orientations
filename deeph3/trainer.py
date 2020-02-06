@@ -4,7 +4,6 @@ from time import time
 from tqdm import tqdm
 from os.path import basename, join
 from deeph3 import load_checkpoint_dict, save_train_checkpoint
-from deeph3.viz import heatmap2d
 from deeph3.evaluator import test_model
 from deeph3.util import time_diff, get_probs_from_model, binned_matrix
 from deeph3.data_util import Batch, to_device, get_default_device
@@ -302,7 +301,5 @@ def create_batch_saver(writer, epoch, dilation_cycle, validation_loader, all_tra
 
             msg = 'Writing predicted distance matrix to {}...'
             print(msg.format(Path(file_name).absolute()))
-            heatmap2d(mat, title=title, out_file=file_name, color_min=0,
-                      color_max=26)
 
     return save_func

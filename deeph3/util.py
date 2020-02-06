@@ -830,17 +830,3 @@ def pdb2fasta(pdb_file, num_chains=None):
         fasta += '{}\n'.format(seq)
     return fasta
 
-
-if __name__ == '__main__':
-    def main():
-        #fasta = pdb2fasta('./data/antibody_database/1a0q_trunc.pdb')
-        #print(fasta)
-        from deeph3.h3model_loader import load_model
-        #using relative paths to make implementation general for different users
-        model = load_model('models/abantibody_train_antibody_validation_batchsize4model_1D3_2D10_bins26_AdaBound_lr0p0001_final_lr0p01_weight_decay0p0_CrossEntropyLoss_seed1234.p')
-        logits = get_logits_from_model(model, 'data/fastas/3nps_trunc.fasta', chain_delimiter=True) #default set to 3nps - longest loop - difficult target see Weitzner 2016
-        print('new')
-        new_method = binned_matrix(logits.clone(), method='avg')
-        print(new_method)
-    main()
-

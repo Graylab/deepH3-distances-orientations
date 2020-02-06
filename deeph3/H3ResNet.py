@@ -23,7 +23,7 @@ class H3ResNet(nn.Module):
 
         self.resnet1D = ResNet1D(in_planes, ResBlock1D, [num_blocks1D],
                                  init_planes=32, kernel_size=17)
-        self.seq2pairwise = OuterConcatenation2D(include_midpoint=False)
+        self.seq2pairwise = OuterConcatenation2D()
 
         # Calculate the number of planes output from the seq2pairwise layer
         expansion1D = int(math.pow(2, self.resnet1D.num_layers - 1))
@@ -68,3 +68,4 @@ class H3ResNet(nn.Module):
         out_omega = out_omega + out_omega.transpose(2, 3)
 
         return stack([out_dist, out_omega, out_theta, out_phi]).transpose(0, 1)
+

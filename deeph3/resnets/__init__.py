@@ -6,5 +6,4 @@ https://github.com/fanzhenya/ResNet1D-VariableLengthPooling-For-TimeSeries/blob/
 """
 from .ResNet1D import *
 from .ResNet2D import *
-from .PreActResNet1D import *
 
