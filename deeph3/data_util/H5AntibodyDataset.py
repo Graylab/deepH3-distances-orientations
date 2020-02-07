@@ -5,7 +5,7 @@ import torch.utils.data as data
 import torch.nn.functional as F
 from tqdm import tqdm
 from deeph3.data_util import Batch
-from deeph3.util import pad_data_to_same_shape, get_dist_bins, get_omega_bins, get_theta_bins, get_phi_bins, bin_distance_matrix, bin_euler_matrix, bin_dist_angle_matrix
+from deeph3.util import pad_data_to_same_shape, get_dist_bins, get_omega_bins, get_theta_bins, get_phi_bins, bin_dist_angle_matrix
 
 
 class H5AntibodyDataset(data.Dataset):
@@ -243,3 +243,4 @@ def h5_antibody_dataloader(filename, batch_size=1, max_seq_len=None, **kwargs):
     kwargs.update(dict(batch_size=batch_size))
 
     return data.DataLoader(H5AntibodyDataset(filename, max_seq_len=max_seq_len), **kwargs)
+

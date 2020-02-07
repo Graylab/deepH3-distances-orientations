@@ -166,7 +166,7 @@ if __name__ == '__main__':
     from time import time
     from deeph3 import load_model
     from deeph3.util import get_logits_from_model, bin_distance_matrix, get_dist_bins
-    checkpoint_file = '/Users/cguerra3/Rosetta_REU/deep-H3-loop-prediction/deeph3/models/abantibody_train_antibody_validation_batchsize4model_1D3_2D10_bins26_AdaBound_lr0p0001_final_lr0p01_weight_decay0p0_CrossEntropyLoss_seed1234.p'
+    checkpoint_file = './models/adam_opt_lr01_da/abantibody_train_antibody_validation_batchsize4model_1D3_2D25_bins26_dil5_Adam_lr0p001_weight_decay0p0_CrossEntropyLoss_ReduceLROnPlateau_factor0p01_min_lr0p0_patien.p'
     model = load_model(checkpoint_file)
     dist_mat = pickle.load(open('/Users/cguerra3/Rosetta_REU/deep-H3-loop-prediction/deeph3/data/dists/1sy6_trunc.p', 'rb'))
     dist_mat = bin_distance_matrix(dist_mat, bins=get_dist_bins(26))

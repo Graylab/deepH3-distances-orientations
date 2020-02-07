@@ -4,6 +4,7 @@ import torch.nn.functional as F
 import pandas as pd
 import numpy as np
 import math
+import re
 from pathlib import Path
 from os import listdir
 from os.path import splitext, basename
@@ -12,7 +13,18 @@ from shutil import copyfile
 from Bio import SeqIO
 from Bio.PDB import PDBParser
 from Bio.SeqUtils import seq1
-from deeph3.preprocess.pnet_text_parser import letter_to_num, _aa_dict
+
+
+_aa_dict = {'A': '0', 'C': '1', 'D': '2', 'E': '3', 'F': '4', 'G': '5', 'H': '6', 'I': '7', 'K': '8', 'L': '9', 'M': '10', 'N': '11', 'P': '12', 'Q': '13', 'R': '14', 'S': '15', 'T': '16', 'V': '17', 'W': '18', 'Y': '19'}
+
+
+def letter_to_num(string, dict_):
+    """Function taken from ProteinNet (https://github.com/aqlaboratory/proteinnet/blob/master/code/text_parser.py).
+    Convert string of letters to list of ints"""
+    patt = re.compile('[' + ''.join(dict_.keys()) + ']')
+    num_string = patt.sub(lambda m: dict_[m.group(0)] + ' ', string)
+    num = [int(i) for i in num_string.split()]
+    return num
 
 
 def time_diff(start_time, end_time):
@@ -29,7 +41,7 @@ def load_full_seq(fasta_file):
         return ''.join([seq.rstrip() for seq in f.readlines() if seq[0] != '>'])
 
 
-def onehot_seq(seq):
+def one_hot_seq(seq):
     """Gets a one-hot encoded version of a protein sequence"""
     return F.one_hot(torch.LongTensor(letter_to_num(seq, _aa_dict)))
 
@@ -89,7 +101,7 @@ def binned_matrix(in_tensor, are_logits=True, method='max'):
 
 def get_logits_from_model(model, fasta_file, chain_delimiter=False):
     """Gets the probability distribution output of a H3ResNet model"""
-    seq = onehot_seq(load_full_seq(fasta_file)).float()
+    seq = one_hot_seq(load_full_seq(fasta_file)).float()
     if chain_delimiter:
         # Add chain delimiter
         seq = F.pad(seq, (0, 1, 0, 0))
@@ -102,7 +114,8 @@ def get_logits_from_model(model, fasta_file, chain_delimiter=False):
         seq[h_len-1, seq.shape[1]-1] = 1
 
     seq = seq.unsqueeze(0).transpose(1, 2)
-    return model(seq)[0]
+    with torch.no_grad():
+        return model(seq)[0]
 
 
 def get_probs_from_model(model, fasta_file, **kwargs):
@@ -148,36 +161,6 @@ def pairwise_contact_probs(logits, **kwargs):
 
     pairwise_probs.sort(key=lambda x: -x[2])
     return pairwise_probs
-
-
-def write_rr_file(logits, seq, target='rr_output'):
-    """Creates output in RR format"""
-    pairwise_probs = pairwise_contact_probs(logits)
-    with open('{}.rr'.format(target), 'w') as f:
-        f.write('PFRMAT RR\n')
-        f.write('TARGET {}\n'.format(target))
-        f.write('AUTHOR deeph3\n')
-        f.write('METHOD deep residual neural network\n')
-        f.write('MODEL 1\n')
-        for sub_seq in chunk(seq, 50):
-            f.write('{}\n'.format(sub_seq))
-        for i, j, p in pairwise_probs:
-            f.write('{} {} 0 8 {:.7f}\n'.format(i + 1, j + 1, p))
-        f.write('END\n\n')
-
-
-def rr_file_to_prob_matricies(rr_file):
-    """Creates an LxL tensor of pairwise contact probabilities from a RR file"""
-    ignore_tags = ['PFRMAT', 'TARGET', 'AUTHOR', 'METHOD']
-    with open(rr_file, 'r') as f:
-        lines = [l.replace('\n', '') for l in f.readlines()
-                 if not any(s in l for s in ignore_tags)]
-
-    for line in lines:
-        words = line.split(' ')
-        if words[0] in ignore_tags:
-            continue
-    return NotImplementedError()
 
 
 def get_dist_bins(num_bins):
@@ -364,25 +347,6 @@ def protein_dist_matrix(pdb_file, mask=None, remove_missing_n_term=False):
     if mask is None:
         mask = torch.ByteTensor([1 if _ != -1 else 0 for _ in backbone])
     return generate_dist_matrix(torch.Tensor(coords), mask=mask)
-
-
-def generate_pnet_dist_matrix(tertiary, **kwargs):
-    """Generates a matrix of pairwise distances between alpha-carbons.
-
-    :param tertiary:
-        An n x 9 tensor where index [i, [3, 4, 5]] contains the coordinates of
-        the N, CA, and C backbone atoms of the ith residue.
-    :type tertiary: torch.Tensor
-    :param mask: A tensor of shape (n,) with 1's on valid elements and 0 on
-                 invalid elements in the sequence.
-    :type mask: torch.Tensor
-    :param mask_fill_value: The value to replace invalid elements with.
-    :type mask_fill_value: int
-    :return: A distance matrix of distances between alpha-carbons.
-    :rtype: torch.Tensor
-    """
-    ca_coords = tertiary[:, 3:6]
-    return generate_dist_matrix(ca_coords, **kwargs)
 
 
 def generate_euler_matrix(n_coords, ca_coords, c_coords, mask=None, mask_fill_value=-1):
@@ -779,13 +743,6 @@ def fill_diagonally_(matrix, diagonal_index, fill_value=0, fill_method='below'):
             raise ValueError(msg.format(fill_method))
 
         matrix[i, left_bound:right_bound] = fill_value
-
-
-def fill_diagonally(matrix, diagonal_index, **kwargs):
-    """A non-destructive version of fill_diagonally_()"""
-    new_matrix = matrix.clone()
-    fill_diagonally_(new_matrix, diagonal_index, **kwargs)
-    return new_matrix
 
 
 def get_pdb_atoms(pdb_file_path):

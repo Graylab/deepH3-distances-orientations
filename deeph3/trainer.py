@@ -303,3 +303,4 @@ def create_batch_saver(writer, epoch, dilation_cycle, validation_loader, all_tra
             print(msg.format(Path(file_name).absolute()))
 
     return save_func
+

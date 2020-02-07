@@ -1,6 +1,6 @@
 import math
-from torch import stack
 import torch.nn as nn
+from torch import stack
 from deeph3.resnets import ResNet1D, ResBlock1D, ResNet2D, ResBlock2D
 from deeph3.layers import OuterConcatenation2D
 

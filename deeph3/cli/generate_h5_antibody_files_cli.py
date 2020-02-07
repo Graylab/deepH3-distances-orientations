@@ -4,7 +4,7 @@ from deeph3.preprocess.generate_h5_antibody_files import antibody_to_h5
 from deeph3.util import split_dir
 
 
-desc = 'Creates h5 files from all the ProteinNet text files in a directory'
+desc = 'Creates h5 files from all the pdb files in a directory'
 parser = argparse.ArgumentParser(description=desc)
 parser.add_argument('pdb_dir', type=str,
                     help='The directory containing PDB files where an antibody'
