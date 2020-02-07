@@ -65,7 +65,7 @@ def generate_probabilities(logits):
     return nn.Softmax(dim=3)(logits)
 
 
-def binned_matrix(in_tensor, are_logits=True, method='max'):
+def bin_matrix(in_tensor, are_logits=True, method='max'):
     """
     Bins a 3d tensor of shape (logits, N, N). This assumes that the channels
     are logits to generate probabilities from.
