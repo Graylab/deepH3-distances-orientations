@@ -5,20 +5,6 @@ inter-residue distances for CDR H3 loops in antibodies. This work is protected b
 ResNet part of the code is re-implemented from https://github.com/KaimingHe/resnet-1k-layers which was based on \
 https://github.com/facebook/fb.resnet.torch
 
-## CLI Experimentation
-This repository supports experimenting on H5 datasets for antibody data through a CLI.
-
-## Model Training
-Here is an example of a command to train a model on antibody H5 datasets 
-located in the /foo/bar/antibody_h5 directory. The working directory is 
-deeph3 and the model is saved every 20 batches to the 
-/baz/boo/models directory.
-```buildoutcfg
-python ./cli/antibody_trainer.py /foo/bar/antibody_h5 \
---validation_file antibody_validation.h5 --training_file antibody_validation.h5 \
---epochs 4 --batch_size 1 --save_every 20 --models_dir /baz/boo/models
-```
-
 ## Generating H5 file from pdb and fasta files
 To generate H5 files from pdb and fastas files, use the command below from the
 deeph3 working directory with pdb files stored in /foo/bar/antibody_pdbs and 
@@ -38,7 +24,6 @@ Model trained on ~ 1400 antibodies from the SABDAb Database is available here
 deeph3/models/adam_opt_lr01_da/
 
 ## Requirements
-
 torch, tensorboard (1.4 or higher), biopython (see requirements.txt for the complete list)
 
 ## Authors

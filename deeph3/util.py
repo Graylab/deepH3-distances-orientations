@@ -27,14 +27,6 @@ def letter_to_num(string, dict_):
     return num
 
 
-def time_diff(start_time, end_time):
-    """Returns the difference in time in HH:MM:SS format"""
-    secs = int((end_time - start_time) % 60)
-    mins = int(((end_time - start_time) // 60) % 60)
-    hrs = int(((end_time - start_time) // (60 * 60)) % 60)
-    return '{}:{:02}:{:02} (hrs:min:secs)'.format(hrs, mins, secs)
-
-
 def load_full_seq(fasta_file):
     """Concatenates the sequences of all the chains in a fasta file"""
     with open(fasta_file, 'r') as f:
