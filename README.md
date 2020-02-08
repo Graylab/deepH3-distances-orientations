@@ -5,23 +5,22 @@ inter-residue distances for CDR H3 loops in antibodies. This work is protected b
 ResNet part of the code is re-implemented from https://github.com/KaimingHe/resnet-1k-layers which was based on \
 https://github.com/facebook/fb.resnet.torch
 
-## Generating H5 file from pdb and fasta files
-To generate H5 files from pdb and fastas files, use the command below from the
-deeph3 working directory with pdb files stored in /foo/bar/antibody_pdbs and 
-fasta files stored in /foo/bar/antibody_fastas. The output h5 file in this example
-is /foo/bar/antibody_h5/antibody_validation.h5.
-```
-python ./cli/generate_h5_antibody_files_cli.py /foo/bar/antibody_pdbs \
-/foo/bar/antibody_fastas /foo/bar/antibody_h5/antibody_validation.h5
-```
-For example pdb and fasta files see: /deeph3/data/antibody_dataset/fastas_testrun/
-and /deeph3/data/antibody_dataset/pdbs_testrun/
-
-Use the '-h' or '--help' flag for a full list and description of flags.
-
 ## Trained Model 
 Model trained on ~ 1400 antibodies from the SABDAb Database is available here
-deeph3/models/adam_opt_lr01_da/
+deeph3/models/
+
+## Usage
+```
+python predict.py --fasta_file [fasta file path] --model [model file path] --out_file [output file path]
+```
+The fasta file must have the following format:
+```
+>[PDB ID]:H	[heavy chain sequence length]
+[heavy chain sequence]
+>[PDB ID]:L	[light chain sequence length]
+[light chain sequence]
+```
+See deeph3/data/antibody_dataset/fastas_testrun for an example.
 
 ## Requirements
 torch, tensorboard (1.4 or higher), biopython (see requirements.txt for the complete list)
