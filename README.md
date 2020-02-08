@@ -1,6 +1,6 @@
 # Deep H3 Loop Prediction
 A deep residual network architecture to predict probability distributions of 
-inter-residue distances for CDR H3 loops in antibodies. This work is protected by https://creativecommons.org/licenses/by-nc/3.0/.
+inter-residue distances and angles for CDR H3 loops in antibodies. This work is protected by https://creativecommons.org/licenses/by-nc/3.0/.
 
 ResNet part of the code is re-implemented from https://github.com/KaimingHe/resnet-1k-layers which was based on \
 https://github.com/facebook/fb.resnet.torch
