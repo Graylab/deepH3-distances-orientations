@@ -11,7 +11,7 @@ deeph3/models/
 
 ## Usage
 ```
-python predict.py --fasta_file [fasta file path] --model [model file path] --out_file [output file path]
+python predict.py --fasta_file [fasta file path] --model [model file path]
 ```
 The fasta file must have the following format:
 ```
@@ -21,6 +21,8 @@ The fasta file must have the following format:
 [light chain sequence]
 ```
 See deeph3/data/antibody_dataset/fastas_testrun for an example.
+
+Other optional arguments can be listed using the --help or -h option.
 
 ## Requirements
 torch, tensorboard (1.4 or higher), biopython (see requirements.txt for the complete list)
