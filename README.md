@@ -33,7 +33,7 @@ torch, tensorboard (1.4 or higher), biopython (see requirements.txt for the comp
 * **Jeff Ruffolo** - [jeffreyruffolo](https://github.com/jeffreyruffolo)
 
 ## Research Advisors
-* **Jeremias Sulam**
+* **Jeremias Sulam** - [jsulam](https://github.com/jsulam)
 * **Jeffrey Gray** - [jjgray](https://github.com/jjgray)
 
 ## References
