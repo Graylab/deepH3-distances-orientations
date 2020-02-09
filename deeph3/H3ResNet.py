@@ -7,7 +7,7 @@ from deeph3.layers import OuterConcatenation2D
 
 class H3ResNet(nn.Module):
     def __init__(self, in_planes, num_out_bins=26, num_blocks1D=3, num_blocks2D=21,
-                 dilation_cycle=2):
+                 dilation_cycle=5):
         super(H3ResNet, self).__init__()
         if isinstance(num_blocks1D, list):
             if len(num_blocks1D) > 1:
