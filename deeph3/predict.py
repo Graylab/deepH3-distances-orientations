@@ -69,7 +69,8 @@ def load_model(file_name, num_blocks1D=3, num_blocks2D=21):
     return model
 
 
-def cli():
+def _cli():
+    """Command line interface for predict.py when it is run as a script"""
     predict_py_path = os.path.dirname(os.path.realpath(__file__))
     default_model_path = os.path.join(predict_py_path, 'models/fully_trained_model.p')
     default_fasta_path = os.path.join(predict_py_path, 'data/antibody_dataset/fastas_testrun/1a0q_trunc.fasta')
@@ -109,5 +110,5 @@ def cli():
 
 
 if __name__ == '__main__':
-    cli()
+    _cli()
 
