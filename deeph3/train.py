@@ -15,13 +15,9 @@ def train(model, train_loader, optimizer, epochs, device):
     model = model.to(device)
     model.train()
     running_loss = torch.zeros(5)
-    for i, data in tqdm(enumerate(train_loader), total=len(train_loader)):
-        if isinstance(data, H5AntibodyBatch):
-            inputs, labels = data.data()
-        else:
-            inputs, labels = data
+    for i, (inputs, labels) in tqdm(enumerate(train_loader), total=len(train_loader)):
         print(labels.shape)
-        plt.imshow(labels[0][1].numpy())
+        plt.imshow(labels[1][1].numpy())
         plt.show()
         batch_start = time()
 

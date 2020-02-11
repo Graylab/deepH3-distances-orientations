@@ -190,7 +190,7 @@ class H5AntibodyDataset(data.Dataset):
     def merge_samples_to_minibatch(samples):
         # sort according to length of aa sequence
         samples.sort(key=lambda x: len(x[2]), reverse=True)
-        return H5AntibodyBatch(zip(*samples))
+        return H5AntibodyBatch(zip(*samples)).data()
 
 
 class H5AntibodyBatch:
