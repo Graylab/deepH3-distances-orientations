@@ -33,6 +33,14 @@ def load_full_seq(fasta_file):
         return ''.join([seq.rstrip() for seq in f.readlines() if seq[0] != '>'])
 
 
+def time_diff(start_time, end_time):
+    """Returns the difference in time in HH:MM:SS format"""
+    secs = int((end_time - start_time) % 60)
+    mins = int(((end_time - start_time) // 60) % 60)
+    hrs = int(((end_time - start_time) // (60 * 60)) % 60)
+    return '{}:{:02}:{:02} (hrs:min:secs)'.format(hrs, mins, secs)
+
+
 def one_hot_seq(seq):
     """Gets a one-hot encoded version of a protein sequence"""
     return F.one_hot(torch.LongTensor(letter_to_num(seq, _aa_dict)))

@@ -1,15 +1,17 @@
 import argparse
 import torch
+import torch.nn as nn
 import os
 import matplotlib.pyplot as plt
 from time import time
 from tqdm import tqdm
 from torch.optim import Adam
 from deeph3 import H3ResNet
+from deeph3.util import time_diff
 from deeph3.data_util.H5AntibodyDataset import h5_antibody_dataloader, H5AntibodyBatch
 
 
-def train(model, train_loader, optimizer, epochs, device):
+def train(model, train_loader, optimizer, epochs, device, criterion):
     """"""
     print('Using {} as device'.format(str(device).upper()))
     model = model.to(device)
@@ -20,7 +22,26 @@ def train(model, train_loader, optimizer, epochs, device):
         plt.imshow(labels[1][1].numpy())
         plt.show()
         batch_start = time()
+        inputs = inputs.to(device)
+        labels = [label.to(device) for label in labels]
 
+        optimizer.zero_grad()
+
+        def handle_batch():
+            """Function done to ensure variables immediately get dealloced"""
+            outputs = model(inputs).transpose(0, 1)
+            losses = [crit(output, label) for crit, output,
+                      label in zip(criterion, outputs, labels)]
+            loss = sum(losses)
+            losses.append(loss)
+
+            loss.backward()
+            optimizer.step()
+            return outputs, [float(loss.item()) for loss in losses]
+
+        outputs, batch_loss = handle_batch()
+        print('\nTotal time for batch of {} samples: {}'.format(
+                        len(labels[0]), time_diff(batch_start, time())))
 
 def cli():
     """Command line interface for train.py when it is run as a script"""
@@ -68,10 +89,11 @@ def cli():
     device = torch.device(device_type)
 
     optimizer = Adam(model.parameters(), lr=args.lr)
+    criterion = nn.CrossEntropyLoss(ignore_index=-1)
     data_loader = h5_antibody_dataloader(filename=args.training_file, batch_size=args.batch_size)
 
     train(model=model, train_loader=data_loader, optimizer=optimizer, device=device,
-          epochs=args.epochs)
+          epochs=args.epochs, criterion=criterion)
 
 
 if __name__ == '__main__':
