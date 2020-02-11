@@ -1,10 +1,29 @@
-from deeph3 import H3ResNet
 import argparse
+import torch
+import os
+import matplotlib.pyplot as plt
+from time import time
+from tqdm import tqdm
+from torch.optim import Adam
+from deeph3 import H3ResNet
+from deeph3.data_util.H5AntibodyDataset import h5_antibody_dataloader, H5AntibodyBatch
 
 
-def train(model):
+def train(model, train_loader, optimizer, epochs, device):
     """"""
-    pass
+    print('Using {} as device'.format(str(device).upper()))
+    model = model.to(device)
+    model.train()
+    running_loss = torch.zeros(5)
+    for i, data in tqdm(enumerate(train_loader), total=len(train_loader)):
+        if isinstance(data, H5AntibodyBatch):
+            inputs, labels = data.data()
+        else:
+            inputs, labels = data
+        print(labels.shape)
+        plt.imshow(labels[0][1].numpy())
+        plt.show()
+        batch_start = time()
 
 
 def cli():
@@ -37,12 +56,26 @@ def cli():
     # Training arguments
     parser.add_argument('--epochs', type=int, default=30)
     parser.add_argument('--batch_size', type=int, default=4)
+    parser.add_argument('--lr', type=float, default=0.01)
+
+    parser.add_argument('--try_gpu', type=bool, default=True)
+
+    train_py_path = os.path.dirname(os.path.realpath(__file__))
+    default_training_file = os.path.join(train_py_path, 'data/antibody.h5')
+    parser.add_argument('--training_file', type=str, default=default_training_file)
 
     args = parser.parse_args()
     model = H3ResNet(21, num_out_bins=args.num_bins, num_blocks1D=args.num_blocks1D,
                      num_blocks2D=args.num_blocks2D, dropout_proportion=args.dropout,
                      dilation_cycle=args.dilation_cycle)
-    print(model)
+    device_type = 'cuda' if torch.cuda.is_available() and args.try_gpu else 'cpu'
+    device = torch.device(device_type)
+
+    optimizer = Adam(model.parameters(), lr=args.lr)
+    data_loader = h5_antibody_dataloader(filename=args.training_file, batch_size=args.batch_size)
+
+    train(model=model, train_loader=data_loader, optimizer=optimizer, device=device,
+          epochs=args.epochs)
 
 
 if __name__ == '__main__':
