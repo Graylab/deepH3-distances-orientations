@@ -7,8 +7,11 @@ from time import time
 from tqdm import tqdm
 from torch.optim import Adam
 from deeph3 import H3ResNet
-from deeph3.util import time_diff
+from deeph3.util import time_diff, RawTextArgumentDefaultsHelpFormatter
 from deeph3.data_util.H5AntibodyDataset import h5_antibody_dataloader, H5AntibodyBatch
+
+
+_output_names = ['dist', 'omega', 'theta', 'phi']
 
 
 def train(model, train_loader, optimizer, epochs, device, criterion):
@@ -16,11 +19,14 @@ def train(model, train_loader, optimizer, epochs, device, criterion):
     print('Using {} as device'.format(str(device).upper()))
     model = model.to(device)
     model.train()
+    avg_losses = torch.zeros(5)
+    for epoch in range(epochs):
+        avg_losses += _train_batch(model, train_loader, optimizer, epoch, device, criterion)
+
+
+def _train_batch(model, train_loader, optimizer, epoch, device, criterion):
     running_loss = torch.zeros(5)
     for i, (inputs, labels) in tqdm(enumerate(train_loader), total=len(train_loader)):
-        print(labels.shape)
-        plt.imshow(labels[1][1].numpy())
-        plt.show()
         batch_start = time()
         inputs = inputs.to(device)
         labels = [label.to(device) for label in labels]
@@ -30,32 +36,38 @@ def train(model, train_loader, optimizer, epochs, device, criterion):
         def handle_batch():
             """Function done to ensure variables immediately get dealloced"""
             outputs = model(inputs).transpose(0, 1)
-            losses = [crit(output, label) for crit, output,
-                      label in zip(criterion, outputs, labels)]
-            loss = sum(losses)
-            losses.append(loss)
+            losses = [criterion(output, label) for output, label
+                      in zip(outputs, labels)]
+            total_loss = sum(losses)
+            losses.append(total_loss)
 
-            loss.backward()
+            total_loss.backward()
             optimizer.step()
-            return outputs, [float(loss.item()) for loss in losses]
+            return outputs, torch.Tensor([float(loss.item()) for loss in losses])
 
         outputs, batch_loss = handle_batch()
+        running_loss += batch_loss
         print('\nTotal time for batch of {} samples: {}'.format(
-                        len(labels[0]), time_diff(batch_start, time())))
+            len(labels[0]), time_diff(batch_start, time())))
+    avg_loss = running_loss / len(train_loader)
+    print('\nAverage loss (epoch {}): {}'.format(epoch, avg_loss))
+    return avg_loss
+
 
 def cli():
     """Command line interface for train.py when it is run as a script"""
     desc = (
         '''
         ''')
-    parser = argparse.ArgumentParser(description=desc, formatter_class=argparse.RawTextHelpFormatter)
+    parser = argparse.ArgumentParser(description=desc,
+                                     formatter_class=RawTextArgumentDefaultsHelpFormatter)
     # Model architecture arguments
     parser.add_argument('--num_blocks1D', type=int, default=3,
                         help='Number of one-dimensional ResNet blocks to use.')
     parser.add_argument('--num_blocks2D', type=int, default=21,
                         help='Number of two-dimensional ResNet blocks to use.')
     parser.add_argument('--dilation_cycle', type=int, default=5)
-    parser.add_argument('--num_bins', type=int, default=21,
+    parser.add_argument('--num_bins', type=int, default=26,
                         help=('Number of bins to discretize the continuous '
                               'distance, and angle values into.\n'
                               'Example:\n'
@@ -71,11 +83,15 @@ def cli():
                               'during training'))
 
     # Training arguments
-    parser.add_argument('--epochs', type=int, default=30)
-    parser.add_argument('--batch_size', type=int, default=4)
-    parser.add_argument('--lr', type=float, default=0.01)
+    parser.add_argument('--epochs', type=int, default=30,
+                        help='Number of epochs')
+    parser.add_argument('--batch_size', type=int, default=4,
+                        help='Number of proteins per batch')
+    parser.add_argument('--lr', type=float, default=0.01,
+                        help='Learning rate for Adam')
 
-    parser.add_argument('--try_gpu', type=bool, default=True)
+    parser.add_argument('--try_gpu', type=bool, default=True,
+                        help='Whether or not to check for/use the GPU')
 
     train_py_path = os.path.dirname(os.path.realpath(__file__))
     default_training_file = os.path.join(train_py_path, 'data/antibody.h5')
@@ -90,7 +106,8 @@ def cli():
 
     optimizer = Adam(model.parameters(), lr=args.lr)
     criterion = nn.CrossEntropyLoss(ignore_index=-1)
-    data_loader = h5_antibody_dataloader(filename=args.training_file, batch_size=args.batch_size)
+    data_loader = h5_antibody_dataloader(filename=args.training_file,
+                                         num_bins=args.num_bins, batch_size=args.batch_size)
 
     train(model=model, train_loader=data_loader, optimizer=optimizer, device=device,
           epochs=args.epochs, criterion=criterion)

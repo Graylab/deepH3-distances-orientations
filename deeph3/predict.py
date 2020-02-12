@@ -4,7 +4,7 @@ import argparse
 import pickle
 import os
 from deeph3 import H3ResNet
-from deeph3.util import get_probs_from_model, bin_matrix
+from deeph3.util import get_probs_from_model, bin_matrix, RawTextArgumentDefaultsHelpFormatter
 from os.path import isfile
 
 
@@ -84,7 +84,8 @@ def _cli():
             [light chain sequence]
         See 1a0q_trunc.fasta for an example.
         ''')
-    parser = argparse.ArgumentParser(description=desc, formatter_class=argparse.RawTextHelpFormatter)
+    parser = argparse.ArgumentParser(description=desc,
+                                     formatter_class=RawTextArgumentDefaultsHelpFormatter)
     parser.add_argument('--model_file', type=str,
                         default=default_model_path,
                         help=('A pickle file containing a dictionary with the following keys:\n'

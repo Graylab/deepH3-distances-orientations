@@ -234,7 +234,7 @@ class H5AntibodyBatch:
             'Masks have not been added to antibodies yet')
 
 
-def h5_antibody_dataloader(filename, batch_size=1, max_seq_len=None, **kwargs):
+def h5_antibody_dataloader(filename, batch_size=1, max_seq_len=None, num_bins=26, **kwargs):
     constant_kwargs = ['collate_fn']
     if any([c in constant_kwargs for c in kwargs.keys()]):
         raise ValueError(
@@ -244,5 +244,5 @@ def h5_antibody_dataloader(filename, batch_size=1, max_seq_len=None, **kwargs):
         dict(collate_fn=H5AntibodyDataset.merge_samples_to_minibatch))
     kwargs.update(dict(batch_size=batch_size))
 
-    return data.DataLoader(H5AntibodyDataset(filename, max_seq_len=max_seq_len), **kwargs)
+    return data.DataLoader(H5AntibodyDataset(filename, num_bins=num_bins, max_seq_len=max_seq_len), **kwargs)
 

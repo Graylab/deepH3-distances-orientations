@@ -5,6 +5,7 @@ import pandas as pd
 import numpy as np
 import math
 import re
+import argparse
 from pathlib import Path
 from os import listdir
 from os.path import splitext, basename
@@ -13,6 +14,13 @@ from shutil import copyfile
 from Bio import SeqIO
 from Bio.PDB import PDBParser
 from Bio.SeqUtils import seq1
+
+
+class RawTextArgumentDefaultsHelpFormatter(
+    argparse.ArgumentDefaultsHelpFormatter,
+    argparse.RawTextHelpFormatter
+):
+    pass
 
 
 _aa_dict = {'A': '0', 'C': '1', 'D': '2', 'E': '3', 'F': '4', 'G': '5', 'H': '6', 'I': '7', 'K': '8', 'L': '9', 'M': '10', 'N': '11', 'P': '12', 'Q': '13', 'R': '14', 'S': '15', 'T': '16', 'V': '17', 'W': '18', 'Y': '19'}
