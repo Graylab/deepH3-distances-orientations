@@ -1,11 +1,12 @@
 import argparse
 import torch
-import torch.nn as nn
 import os
 import matplotlib.pyplot as plt
+import torch.nn as nn
+from torch.optim import Adam
+from torch.optim.lr_scheduler import ReduceLROnPlateau
 from time import time
 from tqdm import tqdm
-from torch.optim import Adam
 from deeph3 import H3ResNet
 from deeph3.util import time_diff, RawTextArgumentDefaultsHelpFormatter
 from deeph3.data_util.H5AntibodyDataset import h5_antibody_dataloader, H5AntibodyBatch
@@ -14,19 +15,23 @@ from deeph3.data_util.H5AntibodyDataset import h5_antibody_dataloader, H5Antibod
 _output_names = ['dist', 'omega', 'theta', 'phi']
 
 
-def train(model, train_loader, optimizer, epochs, device, criterion):
+def train(model, train_loader, optimizer, epochs, device, criterion, lr_modifier):
     """"""
     print('Using {} as device'.format(str(device).upper()))
     model = model.to(device)
     model.train()
-    avg_losses = torch.zeros(5)
     for epoch in range(epochs):
-        avg_losses += _train_batch(model, train_loader, optimizer, epoch, device, criterion)
+        running_losses = _train_batch(model, train_loader, optimizer, device, criterion)
+        total_loss = running_losses[-1]
+        lr_modifier.step(total_loss)
+
+        avg_loss = running_losses / len(train_loader)
+        print('\nAverage loss (epoch {}): {}'.format(epoch, avg_loss))
 
 
-def _train_batch(model, train_loader, optimizer, epoch, device, criterion):
+def _train_batch(model, train_loader, optimizer, device, criterion):
     running_loss = torch.zeros(5)
-    for i, (inputs, labels) in tqdm(enumerate(train_loader), total=len(train_loader)):
+    for inputs, labels in tqdm(train_loader, total=len(train_loader)):
         batch_start = time()
         inputs = inputs.to(device)
         labels = [label.to(device) for label in labels]
@@ -50,8 +55,7 @@ def _train_batch(model, train_loader, optimizer, epoch, device, criterion):
         print('\nTotal time for batch of {} samples: {}'.format(
             len(labels[0]), time_diff(batch_start, time())))
     avg_loss = running_loss / len(train_loader)
-    print('\nAverage loss (epoch {}): {}'.format(epoch, avg_loss))
-    return avg_loss
+    return running_loss
 
 
 def cli():
@@ -108,9 +112,10 @@ def cli():
     criterion = nn.CrossEntropyLoss(ignore_index=-1)
     data_loader = h5_antibody_dataloader(filename=args.training_file,
                                          num_bins=args.num_bins, batch_size=args.batch_size)
+    lr_modifier = ReduceLROnPlateau(optimizer, verbose=True)
 
     train(model=model, train_loader=data_loader, optimizer=optimizer, device=device,
-          epochs=args.epochs, criterion=criterion)
+          epochs=args.epochs, criterion=criterion, lr_modifier=lr_modifier)
 
 
 if __name__ == '__main__':
