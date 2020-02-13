@@ -69,8 +69,8 @@ def load_model(file_name, num_blocks1D=3, num_blocks2D=21):
     return model
 
 
-def _cli():
-    """Command line interface for predict.py when it is run as a script"""
+def _get_args():
+    """Gets command line arguments"""
     predict_py_path = os.path.dirname(os.path.realpath(__file__))
     default_model_path = os.path.join(predict_py_path, 'models/fully_trained_model.p')
     default_fasta_path = os.path.join(predict_py_path, 'data/antibody_dataset/fastas_testrun/1a0q_trunc.fasta')
@@ -103,7 +103,12 @@ def _cli():
     parser.add_argument('--out_file', type=str,
                         default='model_out.p',
                         help='The pickle file to save the model output to.')
-    args = parser.parse_args()
+    return parser.parse_args()
+
+
+def _cli():
+    """Command line interface for predict.py when it is run as a script"""
+    args = _get_args()
     model = load_model(args.model_file)
     predictions = predict(model, args.fasta_file,
                           return_raw_probabilities=args.output_raw_probabilities)
