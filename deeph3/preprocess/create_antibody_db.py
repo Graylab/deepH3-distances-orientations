@@ -19,7 +19,14 @@
 
 import os
 import sys
+import requests
+import pandas as pd
+import argparse
+from deeph3.util import RawTextArgumentDefaultsHelpFormatter
 from pathlib import Path
+from bs4 import BeautifulSoup
+from tqdm import tqdm
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 
 def parse_sabdab_summary(file_name):
@@ -89,7 +96,8 @@ def truncate_antibody_pdbs(sabdab_dir=None):
     #unique_pdbs = set([x[:4] for x in os.listdir("antibody_database") if x.endswith(".pdb")])
     unique_pdbs = set([x[:4] for x in os.listdir("antibody_database") if x.endswith(".pdb")])
 
-    for pdb in unique_pdbs:
+    print('Truncating pdb files...')
+    for pdb in tqdm(unique_pdbs):
 
         # check if "pdb_trunc.pdb" exits, if not then generate it
         if os.path.isfile("antibody_database/" + pdb + "_trunc.pdb"):
@@ -167,9 +175,84 @@ def truncate_antibody_pdbs(sabdab_dir=None):
     return
 
 
-if __name__ == "__main__":
+def download_file(url, output_path):
+    with open(output_path, 'w') as f:
+        f.write(requests.get(url).content.decode('utf-8'))
+
+
+def download_chothia_pdb_files(summary_file='info/sabdab_summary.tsv',
+                               antibody_database_dir='antibody_database',
+                               max_workers=8):
+    download_url = 'http://opig.stats.ox.ac.uk/webapps/newsabdab/sabdab/pdb/{}/?scheme=chothia'
+    summary_dataframe = pd.read_csv(summary_file, sep='\t')
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        unique_pdbs = summary_dataframe['pdb'].unique()
+        pdb_file_paths = [os.path.join(antibody_database_dir, pdb + '.pdb') for pdb in unique_pdbs]
+        urls = [download_url.format(pdb) for pdb in unique_pdbs]
+        results = [executor.submit(lambda a: download_file(*a), args) for args in zip(urls, pdb_file_paths)]
+        print('Downloading chothia files to {}/ from {} ...'.format(
+            antibody_database_dir, download_url))
+        for _ in tqdm(as_completed(results), total=len(urls)):
+            pass
+
+
+def download_sabdab_summary_file(seqid=99, paired=True, nr_complex='All', nr_rfactor='', nr_res=3,
+                                 summary_file='info/sabdab_summary.tsv'):
+    base_url = 'http://opig.stats.ox.ac.uk'
+    search_url = base_url + '/webapps/newsabdab/sabdab/search/'
+    params = dict(seqid=seqid, paired=paired, nr_complex=nr_complex,
+                  nr_rfactor=nr_rfactor, nr_res=nr_res)
+    query = requests.get(search_url, params=params)
+    html = BeautifulSoup(query.content, 'html.parser')
+    summary_file_url = base_url + html.find(id='downloads').find('a').get('href')
+    print('Downloading sabdab summary to {} from: {} ...'.format(
+        summary_file, summary_file_url))
+    download_file(summary_file_url, summary_file)
+
+
+def download_chothias(**kwargs):
+    # Change the working directory to the deeph3/data directory
+    cur_dir = os.getcwd()
     create_antibody_db_py_dir = os.path.dirname(os.path.realpath(__file__))
     sabdab_dir = Path(create_antibody_db_py_dir).parent.joinpath('data')
     os.chdir(sabdab_dir)
+
+    # Make required directories. If they already exist, delete all contents
+    required_dirs = ['antibody_database', 'info']
+    for dir_ in required_dirs:
+        if os.path.isdir(dir_):
+            print('Clearing {} directory...'.format(dir_))
+            for file in os.listdir(dir_):
+                os.remove(os.path.join(dir_, file))
+        else:
+            print('Making {} directory...'.format(dir_))
+            os.mkdir(dir_)
+    
+    download_sabdab_summary_file(**kwargs)
+    download_chothia_pdb_files()
     truncate_antibody_pdbs()
+
+    os.chdir(cur_dir)  # Go back to original working dir
+
+
+def _cli():
+    desc = (
+        '''
+        Downloads chothia files from SabDab
+        ''')
+    parser = argparse.ArgumentParser(description=desc,
+                                     formatter_class=RawTextArgumentDefaultsHelpFormatter)
+    parser.add_argument('--seqid', type=int, default=99)
+    parser.add_argument('--paired', type=bool, default=True)
+    parser.add_argument('--nr_complex', type=str, default='All')
+    parser.add_argument('--nr_rfactor', type=str, default='')
+    parser.add_argument('--nr_res', type=int, default=3)
+    args = parser.parse_args()
+
+    download_chothias(seqid=args.seqid, paired=args.paired, nr_complex=args.nr_complex,
+                      nr_rfactor=args.nr_rfactor, nr_res=args.nr_res)
+
+
+if __name__ == '__main__':
+    _cli()
 

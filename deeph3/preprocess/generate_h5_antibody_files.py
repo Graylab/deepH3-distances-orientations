@@ -124,7 +124,7 @@ def antibody_to_h5(pdb_dir, out_file_path, fasta_dir=None,
 
 
 def cli():
-    desc = 'Creates h5 files from all the ProteinNet text files in a directory'
+    desc = 'Creates h5 files from all the truncated antibody PDB files in a directory'
     parser = argparse.ArgumentParser(description=desc)
     parser.add_argument('pdb_dir', type=str,
                         help='The directory containing PDB files where an antibody'

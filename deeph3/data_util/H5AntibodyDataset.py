@@ -113,7 +113,6 @@ class H5AntibodyDataset(data.Dataset):
             index = len(self.h5file['num_bins']) - 1
             num_bins = int(self.h5file['num_bins'][index])
             weights = self.h5file['class_weights'][index, :, :num_bins]
-
             return weights
 
         if self.dist_bins is None:
