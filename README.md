@@ -5,9 +5,16 @@ inter-residue distances and angles for CDR H3 loops in antibodies. This work is 
 ResNet part of the code is re-implemented from https://github.com/KaimingHe/resnet-1k-layers which was based on \
 https://github.com/facebook/fb.resnet.torch
 
+Details of implementation, ResNet architecture and datasets for training and validation are available
+here:
+https://www.biorxiv.org/content/10.1101/2020.02.09.940254v1
+
 ## Trained Model 
 Model trained on ~ 1400 antibodies from the SABDAb Database is available here
 deeph3/models/
+
+## Training dataset 
+We used thresholds of 99% sequence identity and 3.0 Å resolution to obtain the training dataset from the non-redundant database on SABDAb(http://opig.stats.ox.ac.uk/webapps/newsabdab/sabdab/search/).
 
 ## Usage
 ```
@@ -35,6 +42,11 @@ torch, tensorboard (1.4 or higher), biopython (see requirements.txt for the comp
 ## Research Advisors
 * **Jeremias Sulam** - [jsulam](https://github.com/jsulam)
 * **Jeffrey Gray** - [jjgray](https://github.com/jjgray)
+
+## Cite
+If you publish or report results using this work, please cite:
+Jeffrey A. Ruffolo, Carlos Guerra, Sai Pooja Mahajan, Jeremias Sulam, Jeffrey J. Gray
+bioRxiv 2020.02.09.940254; doi: https://doi.org/10.1101/2020.02.09.940254
 
 ## References
 1. Kaiming He, Xiangyu Zhang, Shaoqing Ren, Jian Sun. Identity Mappings in Deep 
