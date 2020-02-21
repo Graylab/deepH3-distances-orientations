@@ -36,7 +36,7 @@ Other optional arguments can be listed using the --help or -h option.
 
 ## Training
 For training a model using a non-redundant set of bound and unbound antibodies 
-from SabDab with at most 99% sequence similarity, a resolution cutoff of 3, and
+from SABDAb with at most 99% sequence similarity, a resolution cutoff of 3, and
 with a paired VH/VL. By default, uses the model from https://doi.org/10.1101/2020.02.09.940254.
 ```
 python train.py 
