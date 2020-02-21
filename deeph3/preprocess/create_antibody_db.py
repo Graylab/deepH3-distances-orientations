@@ -182,7 +182,7 @@ def download_file(url, output_path):
 
 def download_chothia_pdb_files(summary_file='info/sabdab_summary.tsv',
                                antibody_database_dir='antibody_database',
-                               max_workers=8):
+                               max_workers=16):
     download_url = 'http://opig.stats.ox.ac.uk/webapps/newsabdab/sabdab/pdb/{}/?scheme=chothia'
     summary_dataframe = pd.read_csv(summary_file, sep='\t')
     with ThreadPoolExecutor(max_workers=max_workers) as executor:

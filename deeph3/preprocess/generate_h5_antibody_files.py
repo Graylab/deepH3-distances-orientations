@@ -1,10 +1,12 @@
 import h5py
 import numpy as np
 import argparse
+import os
 from tqdm import tqdm
 from deeph3.preprocess import antibody_text_parser as parser
 from os import listdir, remove
 import os.path as path
+from pathlib import Path
 
 
 def antibody_to_h5(pdb_dir, out_file_path, fasta_dir=None,
@@ -129,19 +131,15 @@ def cli():
     parser.add_argument('pdb_dir', type=str,
                         help='The directory containing PDB files where an antibody'
                              'with a PDB id of ID is named: ID.pdb')
-    parser.add_argument('fasta_dir', type=str,
-                        help='The directory containing fastas files where an '
-                             'antibody with a PDB id of ID is named: ID.fasta')
-    parser.add_argument('out_file', type=str,
+    data_path = str(Path(path.dirname(path.realpath(__file__))).parent.joinpath('data'))
+    data_path = path.join(data_path, 'antibody.h5')
+    parser.add_argument('--out_file', type=str, default=data_path,
                         help='The name of the outputted h5 file. This should be a '
                              'absolute path, otherwise it is output to the '
                              'working directory.')
-    parser.add_argument('--get_seq_from_pdb_file', type=bool, default=False,
-                        help='Flag to ignore the fasta_dir argument and derive the '
-                             'sequence from the PDB file\'s residues. WARNING: '
-                             'setting this flag assumes that the PDB file has '
-                             'coordinates for every residue in its sequence. This '
-                             'is not typically the case.')
+    parser.add_argument('--fasta_dir', type=str, default=None,
+                        help='The directory containing fastas files where an '
+                             'antibody with a PDB id of ID is named: ID.fasta')
     parser.add_argument('--remove_missing_n_term', type=bool, default=True)
     parser.add_argument('--overwrite', type=bool,
                         help='Whether or not to overwrite a file or not,'
@@ -150,7 +148,7 @@ def cli():
 
     args = parser.parse_args()
     pdb_dir = args.pdb_dir
-    fasta_dir = None if args.get_seq_from_pdb_file else args.fasta_dir
+    fasta_dir = args.fasta_dir
     out_file = args.out_file
     overwrite = args.overwrite
 

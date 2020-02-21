@@ -35,12 +35,12 @@ def train(model, train_loader, validation_loader, optimizer, epochs, device,
         print('\nAverage training loss (epoch {}): {}'.format(
             epoch, train_loss_dict))
 
-        validation_losses = _validate(model, validation_loader, device, criterion)
-        avg_validation_losses = validation_losses / len(validation_loader)
-        writer.add_scalars('validation_loss', dict(
-            zip(_output_names + ['total'], avg_validation_losses)), global_step=epoch)
+        val_losses = _validate(model, validation_loader, device, criterion)
+        avg_val_losses = val_losses / len(validation_loader)
+        val_loss_dict = dict(zip(_output_names + ['total'], avg_val_losses.tolist()))
+        writer.add_scalars('validation_loss', val_loss_dict, global_step=epoch)
         print('\nAverage validation loss (epoch {}): {}'.format(
-            epoch, avg_validation_losses.tolist()))
+            epoch, avg_val_losses.tolist()))
 
     properties.update({'model_state_dict': model.state_dict()})
     torch.save(properties, save_file)

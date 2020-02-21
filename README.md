@@ -14,7 +14,7 @@ See requirements section, and make sure that your PYTHONPATH environmental
 variable has the deepH3-distances-orientations/ directory. On linux, use the
 following command to do so:
 ```
-export PYTHONPATH="$PYTHONPATH:/path/to/deepH3-distances-orientations"
+export PYTHONPATH="$PYTHONPATH:/absolute/path/to/deepH3-distances-orientations"
 ```
 
 ## Prediction
