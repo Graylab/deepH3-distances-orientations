@@ -101,6 +101,16 @@ def _get_args():
     """Gets command line arguments"""
     desc = (
         '''
+        Script for training a model using a non-redundant set of bound and 
+        unbound antibodies from SabDab with at most 99% sequence similarity, 
+        a resolution cutoff of 3, and with a paired VH/VL. By default, uses 
+        the model from https://doi.org/10.1101/2020.02.09.940254.\n
+        \n
+        If there is no H5 file named antibody.h5 in the deeph3/data directory, 
+        then the script automatically uses the PDB files in 
+        deeph3/data/antibody_database directory to generate antibody.h5. If no 
+        such directory exists, then the script downloads the set of pdbs from
+        SabDab outlined above.
         ''')
     parser = argparse.ArgumentParser(description=desc,
                                      formatter_class=RawTextArgumentDefaultsHelpFormatter)

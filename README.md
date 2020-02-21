@@ -9,7 +9,17 @@ https://github.com/facebook/fb.resnet.torch
 Model trained on ~ 1400 antibodies from the SABDAb Database is available here
 deeph3/models/
 
-## Usage
+## Setup
+See requirements section, and make sure that your PYTHONPATH environmental 
+variable has the deepH3-distances-orientations/ directory. On linux, use the
+following command to do so:
+```
+export PYTHONPATH="$PYTHONPATH:/path/to/deepH3-distances-orientations"
+```
+
+## Prediction
+For predicting the binned distance and angle matrices for a given fasta file
+enter:
 ```
 python predict.py --fasta_file [fasta file path] --model [model file path]
 ```
@@ -21,6 +31,16 @@ The fasta file must have the following format:
 [light chain sequence]
 ```
 See deeph3/data/antibody_dataset/fastas_testrun for an example.
+
+Other optional arguments can be listed using the --help or -h option.
+
+## Training
+For training a model using a non-redundant set of bound and unbound antibodies 
+from SabDab with at most 99% sequence similarity, a resolution cutoff of 3, and
+with a paired VH/VL. By default, uses the model from https://doi.org/10.1101/2020.02.09.940254.
+```
+python train.py 
+```
 
 Other optional arguments can be listed using the --help or -h option.
 
