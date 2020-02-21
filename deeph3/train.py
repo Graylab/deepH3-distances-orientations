@@ -2,15 +2,15 @@ import argparse
 import torch
 import os
 import torch.nn as nn
+import torch.utils.data as data
 from torch.optim import Adam
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torch.utils.tensorboard import SummaryWriter
-from time import time
 from tqdm import tqdm
 from datetime import datetime
 from deeph3 import H3ResNet
-from deeph3.util import time_diff, RawTextArgumentDefaultsHelpFormatter
-from deeph3.data_util.H5AntibodyDataset import h5_antibody_dataloader
+from deeph3.util import RawTextArgumentDefaultsHelpFormatter
+from deeph3.data_util.H5AntibodyDataset import H5AntibodyDataset
 from deeph3.preprocess.create_antibody_db import download_chothias
 from deeph3.preprocess.generate_h5_antibody_files import antibody_to_h5
 
@@ -35,12 +35,12 @@ def train(model, train_loader, validation_loader, optimizer, epochs, device,
         print('\nAverage training loss (epoch {}): {}'.format(
             epoch, train_loss_dict))
 
-        #validation_losses = _validate(model, train_loader, optimizer, device, criterion)
-        #avg_validation_losses = validation_losses / len(validation_loader)
-        #writer.add_scalars('validation_loss', dict(
-        #    zip(_output_names + ['total'], avg_validation_losses)), global_step=epoch)
-        #print('\nAverage validation loss (epoch {}): {}'.format(
-        #    epoch, avg_validation_losses.tolist()))
+        validation_losses = _validate(model, validation_loader, device, criterion)
+        avg_validation_losses = validation_losses / len(validation_loader)
+        writer.add_scalars('validation_loss', dict(
+            zip(_output_names + ['total'], avg_validation_losses)), global_step=epoch)
+        print('\nAverage validation loss (epoch {}): {}'.format(
+            epoch, avg_validation_losses.tolist()))
 
     properties.update({'model_state_dict': model.state_dict()})
     torch.save(properties, save_file)
@@ -73,9 +73,28 @@ def _train_epoch(model, train_loader, optimizer, device, criterion):
     return running_losses
 
 
-def _validate(model, validation_loader, optimizer, device, criterion):
+def _validate(model, validation_loader, device, criterion):
     """"""
-    raise NotImplementedError()
+    with torch.no_grad():
+        model.eval()
+        running_losses = torch.zeros(5)
+        for inputs, labels in tqdm(validation_loader, total=len(validation_loader)):
+            inputs = inputs.to(device)
+            labels = [label.to(device) for label in labels]
+
+            def handle_batch():
+                """Function done to ensure variables immediately get dealloced"""
+                outputs = model(inputs).transpose(0, 1)
+                losses = [criterion(output, label) for output, label
+                          in zip(outputs, labels)]
+                total_loss = sum(losses)
+                losses.append(total_loss)
+
+                return outputs, torch.Tensor([float(l.item()) for l in losses])
+
+            outputs, batch_loss = handle_batch()
+            running_losses += batch_loss
+    return running_losses
 
 
 def _get_args():
@@ -117,6 +136,9 @@ def _get_args():
                         help='Learning rate for Adam')
     parser.add_argument('--try_gpu', type=bool, default=True,
                         help='Whether or not to check for/use the GPU')
+    parser.add_argument('--train_split', type=float, default=0.85,
+                        help=('The percentage of the dataset that is used '
+                              'during training'))
     train_py_path = os.path.dirname(os.path.realpath(__file__))
     default_h5_file = os.path.join(train_py_path, 'data/antibody.h5')
     parser.add_argument('--h5_file', type=str, default=default_h5_file)
@@ -158,11 +180,19 @@ def _cli():
     optimizer = Adam(model.parameters(), lr=args.lr)
     properties.update({'lr': args.lr})
     criterion = nn.CrossEntropyLoss(ignore_index=-1)
+
+    # Load dataset loaders from h5 file
     h5_file = args.h5_file
     _check_for_h5_file(h5_file)
-    train_loader = h5_antibody_dataloader(filename=h5_file,
-                                          num_bins=args.num_bins, batch_size=args.batch_size)
-    validation_loader = None
+    dataset = H5AntibodyDataset(h5_file, num_bins=args.num_bins)
+    train_split_length = int(len(dataset) * args.train_split)
+    train_dataset, validation_dataset = data.random_split(
+        dataset, [train_split_length, len(dataset) - train_split_length])
+    train_loader = data.DataLoader(train_dataset, batch_size=args.batch_size,
+                                   collate_fn=H5AntibodyDataset.merge_samples_to_minibatch)
+    validation_loader = data.DataLoader(validation_dataset, batch_size=args.batch_size,
+                                        collate_fn=H5AntibodyDataset.merge_samples_to_minibatch)
+
     lr_modifier = ReduceLROnPlateau(optimizer, verbose=True)
     out_dir = args.output_dir
     if not os.path.isdir(out_dir):

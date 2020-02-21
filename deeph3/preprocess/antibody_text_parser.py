@@ -16,12 +16,8 @@ def antibody_db_seq_info(fasta_dir):
                    for _ in listdir(fasta_dir) if _[-5:] == 'fasta']
 
     num_seqs = len(fasta_files)
-    min_heavy_seq_len = float('inf')
-    max_heavy_seq_len = -float('inf')
-    min_light_seq_len = float('inf')
-    max_light_seq_len = -float('inf')
-    min_total_seq_len = float('inf')
-    max_total_seq_len = -float('inf')
+    min_heavy_seq_len = min_light_seq_len = min_total_seq_len = float('inf')
+    max_heavy_seq_len = max_light_seq_len = max_total_seq_len = -float('inf')
 
     for fasta_file in fasta_files:
         chains = list(SeqIO.parse(fasta_file, 'fasta'))
