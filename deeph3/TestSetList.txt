@@ -34,6 +34,7 @@
 3liz_trunc.pdb
 3lmj_trunc.pdb
 3m8o_trunc.pdb
+3mlr_trunc.pdb
 3mxw_trunc.pdb
 3nps_trunc.pdb
 3oz9_trunc.pdb
