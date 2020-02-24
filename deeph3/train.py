@@ -146,7 +146,7 @@ def _get_args():
                         help='Learning rate for Adam')
     parser.add_argument('--try_gpu', type=bool, default=True,
                         help='Whether or not to check for/use the GPU')
-    parser.add_argument('--train_split', type=float, default=0.85,
+    parser.add_argument('--train_split', type=float, default=0.95,
                         help=('The percentage of the dataset that is used '
                               'during training'))
     train_py_path = os.path.dirname(os.path.realpath(__file__))
