@@ -1,7 +1,6 @@
 import h5py
 import numpy as np
 import argparse
-import os
 from tqdm import tqdm
 from deeph3.preprocess import antibody_text_parser as parser
 from os import listdir, remove
@@ -140,7 +139,6 @@ def cli():
     parser.add_argument('--fasta_dir', type=str, default=None,
                         help='The directory containing fastas files where an '
                              'antibody with a PDB id of ID is named: ID.fasta')
-    parser.add_argument('--remove_missing_n_term', type=bool, default=True)
     parser.add_argument('--overwrite', type=bool,
                         help='Whether or not to overwrite a file or not,'
                              ' if it exists',

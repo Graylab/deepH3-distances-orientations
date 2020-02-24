@@ -11,7 +11,7 @@ from datetime import datetime
 from deeph3 import H3ResNet
 from deeph3.util import RawTextArgumentDefaultsHelpFormatter
 from deeph3.data_util.H5AntibodyDataset import H5AntibodyDataset
-from deeph3.preprocess.create_antibody_db import download_chothias
+from deeph3.preprocess.create_antibody_db import download_train_dataset
 from deeph3.preprocess.generate_h5_antibody_files import antibody_to_h5
 
 
@@ -171,7 +171,7 @@ def _check_for_h5_file(h5_file):
         pdb_files = [f.endswith('pdb') for f in os.listdir(ab_dir)]
         if len(pdb_files) == 0:
             print('No PDB files found in {}, downloading PDBs ...'.format(ab_dir))
-            download_chothias()
+            download_train_dataset()
         print('Creating new h5 file at {} using data from {}/ ...'.format(h5_file, ab_dir))
         antibody_to_h5(ab_dir, h5_file, print_progress=True)
 

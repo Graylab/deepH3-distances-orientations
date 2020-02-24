@@ -182,11 +182,12 @@ def download_file(url, output_path):
 
 def download_chothia_pdb_files(summary_file='info/sabdab_summary.tsv',
                                antibody_database_dir='antibody_database',
-                               max_workers=16):
+                               max_workers=16, pdb_ignore_set=None):
     download_url = 'http://opig.stats.ox.ac.uk/webapps/newsabdab/sabdab/pdb/{}/?scheme=chothia'
     summary_dataframe = pd.read_csv(summary_file, sep='\t')
+    pdb_ignore_set = set() if pdb_ignore_set is None else pdb_ignore_set
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
-        unique_pdbs = summary_dataframe['pdb'].unique()
+        unique_pdbs = set(summary_dataframe['pdb'].unique()) - pdb_ignore_set
         pdb_file_paths = [os.path.join(antibody_database_dir, pdb + '.pdb') for pdb in unique_pdbs]
         urls = [download_url.format(pdb) for pdb in unique_pdbs]
         results = [executor.submit(lambda a: download_file(*a), args) for args in zip(urls, pdb_file_paths)]
@@ -210,26 +211,27 @@ def download_sabdab_summary_file(seqid=99, paired=True, nr_complex='All', nr_rfa
     download_file(summary_file_url, summary_file)
 
 
-def download_chothias(**kwargs):
+def download_train_dataset(**kwargs):
+    """"""
     # Change the working directory to the deeph3/data directory
     cur_dir = os.getcwd()
     create_antibody_db_py_dir = os.path.dirname(os.path.realpath(__file__))
-    sabdab_dir = Path(create_antibody_db_py_dir).parent.joinpath('data')
-    os.chdir(sabdab_dir)
+    data_dir = Path(create_antibody_db_py_dir).parent.joinpath('data')
+    os.chdir(data_dir)
 
     # Make required directories. If they already exist, delete all contents
     required_dirs = ['antibody_database', 'info']
     for dir_ in required_dirs:
         if os.path.isdir(dir_):
             print('Clearing {} directory...'.format(dir_))
-            for file in os.listdir(dir_):
-                os.remove(os.path.join(dir_, file))
+            for file in os.listdir(dir_): os.remove(os.path.join(dir_, file))
         else:
             print('Making {} directory...'.format(dir_))
             os.mkdir(dir_)
     
     download_sabdab_summary_file(**kwargs)
-    download_chothia_pdb_files()
+    test_dataset = pd.read_csv(str(data_dir.joinpath('TestSetList.txt')))
+    download_chothia_pdb_files(pdb_ignore_set=set(test_dataset['PDB_ID'].unique()))
     truncate_antibody_pdbs()
 
     os.chdir(cur_dir)  # Go back to original working dir
@@ -249,8 +251,8 @@ def _cli():
     parser.add_argument('--nr_res', type=int, default=3)
     args = parser.parse_args()
 
-    download_chothias(seqid=args.seqid, paired=args.paired, nr_complex=args.nr_complex,
-                      nr_rfactor=args.nr_rfactor, nr_res=args.nr_res)
+    download_train_dataset(seqid=args.seqid, paired=args.paired, nr_complex=args.nr_complex,
+                           nr_rfactor=args.nr_rfactor, nr_res=args.nr_res)
 
 
 if __name__ == '__main__':
