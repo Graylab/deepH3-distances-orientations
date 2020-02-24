@@ -25,7 +25,7 @@ def predict(model, fasta_file, chain_delimiter=True, binning_method='max',
                 theta_matrix=theta, phi_matrix=phi)
 
 
-def load_model(file_name, num_blocks1D=3, num_blocks2D=21):
+def load_model(file_name, num_blocks1D=3, num_blocks2D=25):
     """Loads a model from a pickle file
 
     :param file_name:

@@ -117,7 +117,7 @@ def _get_args():
     # Model architecture arguments
     parser.add_argument('--num_blocks1D', type=int, default=3,
                         help='Number of one-dimensional ResNet blocks to use.')
-    parser.add_argument('--num_blocks2D', type=int, default=21,
+    parser.add_argument('--num_blocks2D', type=int, default=25,
                         help='Number of two-dimensional ResNet blocks to use.')
     parser.add_argument('--dilation_cycle', type=int, default=5)
     parser.add_argument('--num_bins', type=int, default=26,
