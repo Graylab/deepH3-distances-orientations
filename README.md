@@ -6,7 +6,7 @@ ResNet part of the code is re-implemented from https://github.com/KaimingHe/resn
 https://github.com/facebook/fb.resnet.torch
 
 ## Trained Model 
-Model trained on ~ 1400 antibodies from the SABDAb Database is available here
+Model trained on ~ 1400 antibodies from the SAbDab Database is available here
 deeph3/models/
 
 ## Setup
@@ -36,7 +36,7 @@ Other optional arguments can be listed using the --help or -h option.
 
 ## Training
 For training a model using a non-redundant set of bound and unbound antibodies 
-from SABDAb with at most 99% sequence similarity, a resolution cutoff of 3, and
+from SAbDab with at most 99% sequence similarity, a resolution cutoff of 3, and
 with a paired VH/VL. By default, uses the model from https://doi.org/10.1101/2020.02.09.940254.
 ```
 python train.py 
@@ -45,7 +45,7 @@ python train.py
 Other optional arguments can be listed using the --help or -h option.
 
 ## Requirements
-torch, tensorboard (1.4 or higher), biopython (see requirements.txt for the complete list)
+torch, tensorboard (2.1 or higher), biopython (see requirements.txt for the complete list)
 
 ## Authors
 * **Carlos Guerra** - [cguerramain](https://github.com/cguerramain)
