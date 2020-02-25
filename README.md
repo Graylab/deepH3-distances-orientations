@@ -32,7 +32,8 @@ See deeph3/data/antibody_dataset/fastas_testrun for an example.
 Other optional arguments can be listed using the --help or -h option.
 
 ## Requirements
-torch, tensorboard (1.4 or higher), biopython (see requirements.txt for the complete list)
+The code has been tested on python3.6
+See requirements.txt for the complete list of libraries.
 
 ## Authors
 * **Carlos Guerra** - [cguerramain](https://github.com/cguerramain)
