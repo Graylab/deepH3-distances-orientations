@@ -180,16 +180,29 @@ def download_file(url, output_path):
         f.write(requests.get(url).content.decode('utf-8'))
 
 
-def download_chothia_pdb_files(summary_file='info/sabdab_summary.tsv',
+def download_chothia_pdb_files(summary_file_path='info/sabdab_summary.tsv',
                                antibody_database_dir='antibody_database',
                                max_workers=16, pdb_ignore_set=None):
-    download_url = 'http://opig.stats.ox.ac.uk/webapps/newsabdab/sabdab/pdb/{}/?scheme=chothia'
-    summary_dataframe = pd.read_csv(summary_file, sep='\t')
+    """
+    :param summary_file_path: Path to the summary file produced by SAbDab
+    :type summary_file_path: str
+    :param antibody_database_dir: Path to the directory to save the PDB files to.
+    :type antibody_database_dir: str
+    :param max_workers: Max number of workers in the thread pool while downloading.
+    :type max_workers: int
+    :param pdb_ignore_set: A set of PDB IDs to ignore in the summary file.
+    :type pdb_ignore_set: set(str)
+    """
+    # Get PDBs to download from the summary file and the path to save each to.
+    summary_dataframe = pd.read_csv(summary_file_path, sep='\t')
     pdb_ignore_set = set() if pdb_ignore_set is None else pdb_ignore_set
+    unique_pdbs = set(summary_dataframe['pdb'].unique()) - pdb_ignore_set
+    pdb_file_paths = [os.path.join(antibody_database_dir, pdb + '.pdb') for pdb in unique_pdbs]
+
+    # Download PDBs using multiple threads
+    download_url = 'http://opig.stats.ox.ac.uk/webapps/newsabdab/sabdab/pdb/{}/?scheme=chothia'
+    urls = [download_url.format(pdb) for pdb in unique_pdbs]
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
-        unique_pdbs = set(summary_dataframe['pdb'].unique()) - pdb_ignore_set
-        pdb_file_paths = [os.path.join(antibody_database_dir, pdb + '.pdb') for pdb in unique_pdbs]
-        urls = [download_url.format(pdb) for pdb in unique_pdbs]
         results = [executor.submit(lambda a: download_file(*a), args) for args in zip(urls, pdb_file_paths)]
         print('Downloading chothia files to {}/ from {} ...'.format(
             antibody_database_dir, download_url))
@@ -212,7 +225,19 @@ def download_sabdab_summary_file(seqid=99, paired=True, nr_complex='All', nr_rfa
 
 
 def download_train_dataset(**kwargs):
-    """"""
+    """
+    Downloads a training set from SAbDab, avoids downloading PDB files in the
+    deeph3/data/TestSetList.txt file.
+
+    :param summary_file_path: Path to the summary file produced by SAbDab
+    :type summary_file_path: str
+    :param antibody_database_dir: Path to the directory to save the PDB files to.
+    :type antibody_database_dir: str
+    :param max_workers: Max number of workers in the thread pool while downloading.
+    :type max_workers: int
+    :param pdb_ignore_set: A set of PDB IDs to ignore in the summary file.
+    :type pdb_ignore_set: set(str)
+    """
     # Change the working directory to the deeph3/data directory
     cur_dir = os.getcwd()
     create_antibody_db_py_dir = os.path.dirname(os.path.realpath(__file__))
@@ -240,15 +265,20 @@ def download_train_dataset(**kwargs):
 def _cli():
     desc = (
         '''
-        Downloads chothia files from SabDab
+        Downloads chothia files from SAbDab
         ''')
     parser = argparse.ArgumentParser(description=desc,
                                      formatter_class=RawTextArgumentDefaultsHelpFormatter)
-    parser.add_argument('--seqid', type=int, default=99)
-    parser.add_argument('--paired', type=bool, default=True)
-    parser.add_argument('--nr_complex', type=str, default='All')
-    parser.add_argument('--nr_rfactor', type=str, default='')
-    parser.add_argument('--nr_res', type=int, default=3)
+    parser.add_argument('--seqid', type=int, default=99,
+                        help='Max sequence identity (%)')
+    parser.add_argument('--paired', type=bool, default=True,
+                        help='Paired VH/VL only?')
+    parser.add_argument('--nr_complex', type=str, default='All',
+                        help='In complex? "All", "Bound only" or "Unbound only"')
+    parser.add_argument('--nr_rfactor', type=str, default='',
+                        help='R-Factor cutoff')
+    parser.add_argument('--nr_res', type=int, default=3,
+                        help='Resolution cutoff')
     args = parser.parse_args()
 
     download_train_dataset(seqid=args.seqid, paired=args.paired, nr_complex=args.nr_complex,
