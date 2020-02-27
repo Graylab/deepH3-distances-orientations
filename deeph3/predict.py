@@ -41,8 +41,9 @@ def load_model(file_name, num_blocks1D=3, num_blocks2D=21):
         If num_blocks2D is not in the pickle file, then this number is used for
         the amount of two dimensional residual blocks.
     """
+    print("hello")
     if not isfile(file_name):
-        raise FileNotFoundError('No file at {file_name}')
+        raise FileNotFoundError(f'No file at {file_name}')
     checkpoint_dict = torch.load(file_name, map_location='cpu')
     model_state = checkpoint_dict['model_state_dict']
 
