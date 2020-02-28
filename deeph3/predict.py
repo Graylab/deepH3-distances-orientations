@@ -103,12 +103,21 @@ def _get_args():
     parser.add_argument('--out_file', type=str,
                         default='model_out.p',
                         help='The pickle file to save the model output to.')
+    parser.add_argument('--silent', type=bool,
+                        default=False,
+                        help='Flag to silence all run output')
     return parser.parse_args()
 
+def print_run_params(args):
+    print("Running deeph3")
+    print("  Input sequence : ",args.fasta_file)
+    print("           Model : ",args.model_file, flush=True)
+    return
 
 def _cli():
     """Command line interface for predict.py when it is run as a script"""
     args = _get_args()
+    print_run_params(args)
     model = load_model(args.model_file)
     predictions = predict(model, args.fasta_file,
                           return_raw_probabilities=args.output_raw_probabilities)
