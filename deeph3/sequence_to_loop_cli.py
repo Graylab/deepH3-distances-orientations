@@ -1,7 +1,7 @@
 import os
 import sys
 from deeph3.predict import load_model
-from deeph3.util import pdb2fasta, get_probs_from_model, bin_matrix, binned_dist_mat_to_values, get_dist_bins, get_omega_bins, get_theta_bins, get_phi_bins, get_bin_values, protein_dist_matrix, load_full_seq
+from deeph3.util import pdb2fasta, get_probs_from_model, bin_matrix, binned_dist_mat_to_values, get_dist_bins, get_omega_bins, get_theta_bins, get_phi_bins, get_bin_values, protein_dist_matrix, load_full_seq, RawTextArgumentDefaultsHelpFormatter
 from deeph3.preprocess.antibody_text_parser import get_cdr_indices
 import re
 import copy
@@ -11,6 +11,7 @@ from glob import glob
 import torch
 from tqdm import tqdm
 import math
+import argparse
 
 
 def generate_constraints(prob_mat, pred_dist_mat, h3_range, constraint_threshold, seq, is_angle=False):
@@ -286,8 +287,40 @@ def create_job_dir(working_dir, constraints_num, constraint_threshold=0, weight_
     return job_dir
 
 
-def main():
-    with open(sys.argv[1]) as config_file:
+def _get_args():
+    """Gets command line arguments"""
+    predict_py_path = os.path.dirname(os.path.realpath(__file__))
+    default_configfile = os.path.join(predict_py_path, 'models/fully_trained_model.p')
+    default_workdir = os.path.join(predict_py_path, 'data/antibody_dataset/fastas_testrun/1a0q_trunc.fasta')
+
+    desc = (
+        '''
+        Convert a deeph3 prediction (from predict.py) to constraints for Rosetta loop building
+        ''')
+    parser = argparse.ArgumentParser(description=desc,
+                                     formatter_class=RawTextArgumentDefaultsHelpFormatter)
+    parser.add_argument('--configfile', type=str,
+                        default=default_configfile,
+                        help=('a config file'))
+    parser.add_argument('--workdir', type=str,
+                        default=default_workdir,
+                        help=('your working directory'))
+    return parser.parse_args()
+
+def print_run_params(args):
+    print("Running sequence_to_loop")
+    print("     Config file : ",args.fasta_file)
+    print("  Work directory : ",args.model_file, flush=True)
+    return
+
+
+def _cli():
+    """Command line interface for %f.py when it is run as a script"""
+    args = _get_args()
+    print("args\n",args)
+    #print_run_params(args)
+
+    with open(args.configfile) as config_file:
         config = json.load(config_file)
 
     job_configs = [copy.deepcopy(config["default"])
@@ -295,7 +328,7 @@ def main():
     [job_configs[i].update(job_config)
      for i, job_config in enumerate(config["jobs"])]
 
-    working_dir = sys.argv[2]
+    working_dir = args.workdir
     if not os.path.exists(working_dir):
         os.mkdir(working_dir)
 
@@ -440,4 +473,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    _cli()
