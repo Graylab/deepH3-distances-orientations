@@ -60,61 +60,61 @@ def get_starting_resnum(pdb_file):
 #     return sorted(constraints, key=lambda c: c[2])
 
 
-def format_kic_flags(job_dir, kic_flags_template, pdb_file, weight_file=None, nstructs=500, refine=False):
-    kic_flags_file = os.path.join(job_dir, "flags")
-    output_dir = os.path.join(job_dir, "output")
+# def format_kic_flags(job_dir, kic_flags_template, pdb_file, weight_file=None, nstructs=500, refine=False):
+#     kic_flags_file = os.path.join(job_dir, "flags")
+#     output_dir = os.path.join(job_dir, "output")
 
-    if not os.path.exists(output_dir):
-        os.mkdir(output_dir)
+#     if not os.path.exists(output_dir):
+#         os.mkdir(output_dir)
 
-    with open(kic_flags_template, "r") as file:
-        content = file.readlines()
+#     with open(kic_flags_template, "r") as file:
+#         content = file.readlines()
 
-    with open(kic_flags_file, "w") as file:
-        for line in content:
-            file.write(line
-                       .replace("__PDB_FILE__", pdb_file)
-                       .replace("__DIR__", job_dir)
-                       .replace("__NSTRUCTS__", str(nstructs)))
-
-
-def format_kic_script(job_dir, kic_script_template):
-    kic_script_file = os.path.join(job_dir, "kic_script.xml")
-    loop_file = os.path.join(job_dir, "loopfile")
-
-    with open(kic_script_template, "r") as file:
-        content = file.readlines()
-
-    with open(kic_script_file, "w") as file:
-        for line in content:
-            file.write(line.replace("__LOOP_FILE__", loop_file))
+#     with open(kic_flags_file, "w") as file:
+#         for line in content:
+#             file.write(line
+#                        .replace("__PDB_FILE__", pdb_file)
+#                        .replace("__DIR__", job_dir)
+#                        .replace("__NSTRUCTS__", str(nstructs)))
 
 
-def format_kic_run_con(job_dir, kic_run_con_template, con_queue=50, refine=False):
-    kic_run_con_file = os.path.join(job_dir, "kic_run.con")
+# def format_kic_script(job_dir, kic_script_template):
+#     kic_script_file = os.path.join(job_dir, "kic_script.xml")
+#     loop_file = os.path.join(job_dir, "loopfile")
 
-    with open(kic_run_con_template, "r") as file:
-        content = file.readlines()
+#     with open(kic_script_template, "r") as file:
+#         content = file.readlines()
 
-    with open(kic_run_con_file, "w") as file:
-        for line in content:
-            file.write(line
-                       .replace("__SCRIPT__", "-parser:protocol __DIR__/kic_script.xml")
-                       .replace("__DIR__", job_dir)
-                       .replace("__QUEUE__", str(con_queue)))
+#     with open(kic_script_file, "w") as file:
+#         for line in content:
+#             file.write(line.replace("__LOOP_FILE__", loop_file))
 
 
-def format_kic_run_slurm(job_dir, kic_run_slurm_template, refine=False):
-    kic_run_slurm_file = os.path.join(job_dir, "kic_run.slurm")
+# def format_kic_run_con(job_dir, kic_run_con_template, con_queue=50, refine=False):
+#     kic_run_con_file = os.path.join(job_dir, "kic_run.con")
 
-    with open(kic_run_slurm_template, "r") as file:
-        content = file.readlines()
+#     with open(kic_run_con_template, "r") as file:
+#         content = file.readlines()
 
-    with open(kic_run_slurm_file, "w") as file:
-        for line in content:
-            file.write(line
-                       .replace("__SCRIPT__", "-parser:protocol $KIC_SCRIPT")
-                       .replace("__DIR__", job_dir))
+#     with open(kic_run_con_file, "w") as file:
+#         for line in content:
+#             file.write(line
+#                        .replace("__SCRIPT__", "-parser:protocol __DIR__/kic_script.xml")
+#                        .replace("__DIR__", job_dir)
+#                        .replace("__QUEUE__", str(con_queue)))
+
+
+# def format_kic_run_slurm(job_dir, kic_run_slurm_template, refine=False):
+#     kic_run_slurm_file = os.path.join(job_dir, "kic_run.slurm")
+
+#     with open(kic_run_slurm_template, "r") as file:
+#         content = file.readlines()
+
+#     with open(kic_run_slurm_file, "w") as file:
+#         for line in content:
+#             file.write(line
+#                        .replace("__SCRIPT__", "-parser:protocol $KIC_SCRIPT")
+#                        .replace("__DIR__", job_dir))
 
 
 def format_templates(job_dir, templates, formatter):
@@ -228,7 +228,7 @@ def create_phi_constraints(hist_dir, constraint_file, constraints, res_offset, c
         ))
 
 
-def populate_job_dir(job_dir, seq, loop_params,
+def write_loop_and_constraint_files(job_dir, seq, loop_params,
                      dist_constraints, omega_constraints, theta_constraints, phi_constraints,
                      constraints_weight=1, constraint_num_offset=1):
     with open(os.path.join(job_dir, "loopfile"), "w") as loop_file:
@@ -266,25 +266,25 @@ def populate_job_dir(job_dir, seq, loop_params,
     return job_dir
 
 
-def create_job_dir(working_dir, constraints_num, constraint_threshold=0, weight_file=None, refine=False, native_constraints=False):
-    job_dir = os.path.join(working_dir, "top{}c_".format(
-        constraints_num) if constraints_num >= 0 else "allc_")
-    if constraint_threshold > 0:
-        job_dir += "{}p_".format(int(constraint_threshold * 100))
-    if not weight_file is None:
-        job_dir += re.split('/', weight_file)[-1] + "_"
-    if refine:
-        job_dir += "ref_"
-    if native_constraints:
-        job_dir += "native_"
+# def create_job_dir(working_dir, constraints_num, constraint_threshold=0, weight_file=None, refine=False, native_constraints=False):
+#     job_dir = os.path.join(working_dir, "top{}c_".format(
+#         constraints_num) if constraints_num >= 0 else "allc_")
+#     if constraint_threshold > 0:
+#         job_dir += "{}p_".format(int(constraint_threshold * 100))
+#     if not weight_file is None:
+#         job_dir += re.split('/', weight_file)[-1] + "_"
+#     if refine:
+#         job_dir += "ref_"
+#     if native_constraints:
+#         job_dir += "native_"
 
-    job_dir = job_dir[:-1]
-    if os.path.exists(job_dir):
-        matches = len(list(glob(job_dir + "[0-9]*")))
-        job_dir += str(matches + 2)
-    os.mkdir(job_dir)
+#     job_dir = job_dir[:-1]
+#     if os.path.exists(job_dir):
+#         matches = len(list(glob(job_dir + "[0-9]*")))
+#         job_dir += str(matches + 2)
+#     os.mkdir(job_dir)
 
-    return job_dir
+#     return job_dir
 
 
 def _get_args():
@@ -317,8 +317,8 @@ def print_run_params(args):
 def _cli():
     """Command line interface for %f.py when it is run as a script"""
     args = _get_args()
-    print("args\n",args)
-    #print_run_params(args)
+    for key,value in vars(args).items():
+        print(key,": ",value)
 
     with open(args.configfile) as config_file:
         config = json.load(config_file)
@@ -332,40 +332,40 @@ def _cli():
     if not os.path.exists(working_dir):
         os.mkdir(working_dir)
 
-    for job_config in tqdm(job_configs):
-        target_fasta = job_config["target_fasta"]
-        target_pdb = job_config["target_pdb"]
-        native_pdb = job_config["native_pdb"]
-        checkpoint_file = job_config["model_file"]
-        weight_file = job_config["weight_file"]
-        nstructs = job_config["nstructs"]
-        refine = job_config["refine"]
-        constraint_type = job_config["constraint_type"]
-        constraints_num = job_config["constraints_num"]
-        constraint_threshold = job_config["constraint_threshold"]
-        native_constraints = job_config["native_constraints"]
-        constraints_weight = job_config["constraints_weight"]
-        use_pdb_starting_resnum = job_config["use_pdb_starting_resnum"]
-        con_queue = job_config["con_queue"]
-        kic_flag_template = job_config["kic_flag_template"]
-        kic_script_template = job_config["kic_script_template"]
-        kic_run_con_template = job_config["kic_run_con_template"]
-        kic_run_slurm_template = job_config["kic_run_slurm_template"]
-        rescore_script_template = job_config["rescore_script_template"]
+    # for job_config in tqdm(job_configs):
+    #     target_fasta = job_config["target_fasta"]
+    #     target_pdb = job_config["target_pdb"]
+    #     native_pdb = job_config["native_pdb"]
+    #     checkpoint_file = job_config["model_file"]
+    #     weight_file = job_config["weight_file"]
+    #     nstructs = job_config["nstructs"]
+    #     refine = job_config["refine"]
+    #     constraint_type = job_config["constraint_type"]
+    #     constraints_num = job_config["constraints_num"]
+    #     constraint_threshold = job_config["constraint_threshold"]
+    #     native_constraints = job_config["native_constraints"]
+    #     constraints_weight = job_config["constraints_weight"]
+    #     use_pdb_starting_resnum = job_config["use_pdb_starting_resnum"]
+    #     con_queue = job_config["con_queue"]
+    #     kic_flag_template = job_config["kic_flag_template"]
+    #     kic_script_template = job_config["kic_script_template"]
+    #     kic_run_con_template = job_config["kic_run_con_template"]
+    #     kic_run_slurm_template = job_config["kic_run_slurm_template"]
+    #     rescore_script_template = job_config["rescore_script_template"]
 
-        job_dir = create_job_dir(working_dir, constraints_num, constraint_threshold,
-                                 weight_file, refine, native_constraints)
-        with open(os.path.join(job_dir, "config.json"), "w") as job_config_file:
-            json.dump(job_config, job_config_file)
+    #     job_dir = create_job_dir(working_dir, constraints_num, constraint_threshold,
+    #                              weight_file, refine, native_constraints)
+    #     with open(os.path.join(job_dir, "config.json"), "w") as job_config_file:
+    #         json.dump(job_config, job_config_file)
 
-        if not os.path.exists(os.path.join(job_dir, "templates")):
-            os.mkdir(os.path.join(job_dir, "templates"))
-        if not os.path.exists(os.path.join(job_dir, "output")):
-            os.mkdir(os.path.join(job_dir, "output"))
-        if not os.path.exists(os.path.join(job_dir, "con_log")):
-            os.mkdir(os.path.join(job_dir, "con_log"))
-        if not os.path.exists(os.path.join(job_dir, "score_pdbs")):
-            os.mkdir(os.path.join(job_dir, "score_pdbs"))
+    #     if not os.path.exists(os.path.join(job_dir, "templates")):
+    #         os.mkdir(os.path.join(job_dir, "templates"))
+    #     if not os.path.exists(os.path.join(job_dir, "output")):
+    #         os.mkdir(os.path.join(job_dir, "output"))
+    #     if not os.path.exists(os.path.join(job_dir, "con_log")):
+    #         os.mkdir(os.path.join(job_dir, "con_log"))
+    #     if not os.path.exists(os.path.join(job_dir, "score_pdbs")):
+    #         os.mkdir(os.path.join(job_dir, "score_pdbs"))
 
         os.system("cp {} {}".format(target_pdb, job_dir))
         target_pdb = os.path.join(job_dir, os.path.split(target_pdb)[1])
@@ -380,38 +380,38 @@ def _cli():
             with open(target_fasta, "w") as file:
                 file.writelines(fasta_text)
 
-        os.system("cp {} {}".format(native_pdb, job_dir))
-        native_pdb = os.path.join(job_dir, os.path.split(native_pdb)[1])
+        # os.system("cp {} {}".format(native_pdb, job_dir))
+        # native_pdb = os.path.join(job_dir, os.path.split(native_pdb)[1])
 
-        os.system("cp {} {}".format(kic_flag_template, os.path.join(
-            job_dir, "templates", "kic_flag_template")))
-        kic_flag_template = os.path.join(
-            job_dir, "templates", "kic_flag_template")
+        # os.system("cp {} {}".format(kic_flag_template, os.path.join(
+        #     job_dir, "templates", "kic_flag_template")))
+        # kic_flag_template = os.path.join(
+        #     job_dir, "templates", "kic_flag_template")
 
-        os.system("cp {} {}".format(kic_script_template, os.path.join(
-            job_dir, "templates", "kic_script_template.xml")))
-        kic_script_template = os.path.join(
-            job_dir, "templates", "kic_script_template.xml")
+        # os.system("cp {} {}".format(kic_script_template, os.path.join(
+        #     job_dir, "templates", "kic_script_template.xml")))
+        # kic_script_template = os.path.join(
+        #     job_dir, "templates", "kic_script_template.xml")
 
-        os.system("cp {} {}".format(rescore_script_template, os.path.join(
-            job_dir, "templates", "rescore_script_template.xml")))
-        rescore_script_template = os.path.join(
-            job_dir, "templates", "rescore_script_template.xml")
+        # os.system("cp {} {}".format(rescore_script_template, os.path.join(
+        #     job_dir, "templates", "rescore_script_template.xml")))
+        # rescore_script_template = os.path.join(
+        #     job_dir, "templates", "rescore_script_template.xml")
 
-        if os.path.exists(kic_run_con_template):
-            os.system("cp {} {}".format(kic_run_con_template, os.path.join(
-                job_dir, "templates", "kic_run_template.con")))
-            kic_run_con_template = os.path.join(
-                job_dir, "templates", "kic_run_template.con")
-        else:
-            kic_run_con_template = None
-        if os.path.exists(kic_run_slurm_template):
-            os.system("cp {} {}".format(kic_run_slurm_template, os.path.join(
-                job_dir, "templates", "kic_run_template.slurm")))
-            kic_run_slurm_template = os.path.join(
-                job_dir, "templates", "kic_run_template.slurm")
-        else:
-            kic_run_slurm_template = None
+        # if os.path.exists(kic_run_con_template):
+        #     os.system("cp {} {}".format(kic_run_con_template, os.path.join(
+        #         job_dir, "templates", "kic_run_template.con")))
+        #     kic_run_con_template = os.path.join(
+        #         job_dir, "templates", "kic_run_template.con")
+        # else:
+        #     kic_run_con_template = None
+        # if os.path.exists(kic_run_slurm_template):
+        #     os.system("cp {} {}".format(kic_run_slurm_template, os.path.join(
+        #         job_dir, "templates", "kic_run_template.slurm")))
+        #     kic_run_slurm_template = os.path.join(
+        #         job_dir, "templates", "kic_run_template.slurm")
+        # else:
+        #     kic_run_slurm_template = None
 
         h3 = get_cdr_indices(target_pdb)['h3']
         loop_params = (h3[0], h3[1], (h3[0] + h3[1]) // 2)
@@ -459,7 +459,7 @@ def _cli():
         }
 
         constraint_num_offset = get_starting_resnum(native_pdb) if use_pdb_starting_resnum else 1
-        populate_job_dir(job_dir, seq, loop_params,
+        write_loop_and_constraint_files(job_dir, seq, loop_params,
                          dist_constraints, omega_constraints, theta_constraints, phi_constraints,
                          constraints_weight=constraints_weight, constraint_num_offset=constraint_num_offset)
         format_templates(job_dir, templates, formatter)
