@@ -290,8 +290,8 @@ def create_job_dir(working_dir, constraints_num, constraint_threshold=0, weight_
 def _get_args():
     """Gets command line arguments"""
     predict_py_path = os.path.dirname(os.path.realpath(__file__))
-    default_configfile = os.path.join(predict_py_path, 'models/fully_trained_model.p')
-    default_workdir = os.path.join(predict_py_path, 'data/antibody_dataset/fastas_testrun/1a0q_trunc.fasta')
+    default_configfile = '/home-2/jgray21@jhu.edu/work/jgray/mywork/kic_job.json'
+    default_workdir = '/home-2/jgray21@jhu.edu/work/jgray/mywork/'
 
     desc = (
         '''
