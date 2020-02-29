@@ -3,9 +3,7 @@ import torch.nn as nn
 import argparse
 import pickle
 import os
-from deeph3 import H3ResNet
-from deeph3.util import get_probs_from_model, bin_matrix, RawTextArgumentDefaultsHelpFormatter
-from os.path import isfile
+from deeph3.util import load_model, get_probs_from_model, bin_matrix, RawTextArgumentDefaultsHelpFormatter
 
 
 def predict(model, fasta_file, chain_delimiter=True, binning_method='max',
@@ -23,50 +21,6 @@ def predict(model, fasta_file, chain_delimiter=True, binning_method='max',
                                              method=binning_method)
     return dict(distance_matrix=dist, omega_matrix=omega,
                 theta_matrix=theta, phi_matrix=phi)
-
-
-def load_model(file_name, num_blocks1D=3, num_blocks2D=25):
-    """Loads a model from a pickle file
-
-    :param file_name:
-        A pickle file containing a dictionary with the following keys:
-            state_dict: The state dict of the H3ResNet model
-            num_blocks1D: The number of one dimensional ResNet blocks
-            num_blocks2D: The number of two dimensional ResNet blocks
-            dilation (optional): The dilation cycle of the model
-    :param num_blocks1D:
-        If num_blocks1D is not in the pickle file, then this number is used for
-        the amount of one dimensional residual blocks.
-    :param num_blocks2D:
-        If num_blocks2D is not in the pickle file, then this number is used for
-        the amount of two dimensional residual blocks.
-    """
-    if not isfile(file_name):
-        raise FileNotFoundError(f'No file at {file_name}')
-    checkpoint_dict = torch.load(file_name, map_location='cpu')
-    model_state = checkpoint_dict['model_state_dict']
-
-    dilation_cycle = 0 if not 'dilation_cycle' in checkpoint_dict else checkpoint_dict[
-        'dilation_cycle']
-
-    in_layer = list(model_state.keys())[0]
-    out_layer = list(model_state.keys())[-1]
-    num_out_bins = model_state[out_layer].shape[0]
-    in_planes = model_state[in_layer].shape[1]
-
-    if 'num_blocks1D' in checkpoint_dict:
-        num_blocks1D = checkpoint_dict['num_blocks1D']
-    if 'num_blocks2D' in checkpoint_dict:
-        num_blocks2D = checkpoint_dict['num_blocks2D']
-
-    resnet = H3ResNet(in_planes=in_planes, num_out_bins=num_out_bins,
-                      num_blocks1D=num_blocks1D, num_blocks2D=num_blocks2D,
-                      dilation_cycle=dilation_cycle)
-    model = nn.Sequential(resnet)
-    model.load_state_dict(model_state)
-    model.eval()
-
-    return model
 
 
 def _get_args():

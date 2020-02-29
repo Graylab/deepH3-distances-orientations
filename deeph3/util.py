@@ -8,12 +8,13 @@ import re
 import argparse
 from pathlib import Path
 from os import listdir
-from os.path import splitext, basename
+from os.path import splitext, basename, isfile
 from tqdm import tqdm
 from shutil import copyfile
 from Bio import SeqIO
 from Bio.PDB import PDBParser
 from Bio.SeqUtils import seq1
+from deeph3 import H3ResNet
 
 
 class RawTextArgumentDefaultsHelpFormatter(
@@ -132,57 +133,11 @@ def get_probs_from_model(model, fasta_file, **kwargs):
     return generate_probabilities(logits)
 
 
-def contact_probs(logits, ang8_bin=8):
-    """Generates contact probabilites given a 3d tensor of logits
-    :param logits: The logits to generate probabilities from. Should have shape
-                   (logits, n, n).
-    :type logits: torch.Tensor
-    :param ang8_bin:
-        The index of the bin containing distances between 7.5 and 8 angstroms.
-        It is assumed that every index prior is <8 angstroms
-    :type ang8_bin: int
-    """
-    probs = generate_probabilities(logits.unsqueeze(0))[0]
-    # Sum up the probability that any given residue pair is in contact (<8 Ang.)
-    return probs[:, :, :ang8_bin+1].sum(2)
-
-
-def logits_to_contact_map(logits, **kwargs):
-    """Generates a contact map from a 3d tensor of logits of shape (logits, N, N)
-    where N is the length of the protein sequence
-
-    Contacts are defined as they are in CASP, where two residues are considered
-    to be in contact if the probability that they are <8 Ang. appart is > 0.50.
-    """
-    return contact_probs(logits, **kwargs) > 0.50
-
-
-def pairwise_contact_probs(logits, **kwargs):
-    """Outputs a list of 3-tuples (i, j, p) with the probability p that residues
-    i and j are in contact"""
-    probs = contact_probs(logits, **kwargs)
-    pairwise_probs = []
-    for i, row in enumerate(probs):
-        for j, p in enumerate(row):
-            if i < j:
-                pairwise_probs.append((i, j, p.item()))
-
-    pairwise_probs.sort(key=lambda x: -x[2])
-    return pairwise_probs
-
-
 def get_dist_bins(num_bins):
     first_bin = 4
     bins = [(first_bin + 0.5 * i, first_bin + 0.5 + 0.5 * i) for i in range(num_bins - 2)]
     bins.append((bins[-1][1], float('Inf')))
     bins.insert(0, (0, first_bin))
-    return bins
-
-
-def get_angle_bins(num_bins):
-    first_bin = -180
-    bin_width = 2 * 180 / (num_bins)
-    bins = [(first_bin + bin_width * i, first_bin + bin_width * (i + 1)) for i in range(num_bins)]
     return bins
 
 
@@ -213,64 +168,6 @@ def get_bin_values(bins):
     bin_values = [v + bin_width for v in bin_values]
     bin_values[0] = bin_values[1] - 2 * bin_width
     return bin_values
-
-
-def bin_distance_matrix(dist_matrix, bins=None, mask=None, mask_fill_value=-1):
-    """Convert a continuous distance matrix to a binned version
-
-    :param dist_matrix: A tensor of shape (n, n) of pairwise distances.
-    :type dist_matrix: torch.Tensor
-    :param mask: A tensor of shape (n,) with 1's on valid elements and 0 on
-                 invalid elements in the sequence.
-    :type mask: torch.Tensor
-    :param mask_fill_value: The value to replace invalid elements with.
-    :type mask_fill_value: int
-    """
-    bins = bins if bins is not None else get_dist_bins(26)
-
-    binned_matrix = torch.zeros(dist_matrix.shape, dtype=torch.long)
-    for i, (lower_bound, upper_bound) in enumerate(bins):
-        bin_mask = (dist_matrix >= lower_bound).__and__(dist_matrix < upper_bound)
-        binned_matrix[bin_mask] = i
-
-    # Set masked bins to mask_fill_value
-    if mask is not None:
-        n = len(mask)
-        not_mask = torch.ones(n).type(dtype=mask.dtype) - mask  # Set 1's to 0's and vice versa
-        not_mask = not_mask.unsqueeze(0)  # Expand to two dimensions
-        not_mask = not_mask.expand(n, n) + not_mask.transpose(0, 1).expand(n, n)
-        binned_matrix[not_mask > 0] = mask_fill_value
-
-    return binned_matrix
-
-
-def bin_euler_matrix(euler_matrix, bins=None, mask=None, mask_fill_value=-1):
-    """Convert a continuous euler matrix to a binned version
-
-    :param dist_matrix: A tensor of shape (n, n) of pairwise angles.
-    :type dist_matrix: torch.Tensor
-    :param mask: A tensor of shape (n,) with 1's on valid elements and 0 on
-                 invalid elements in the sequence.
-    :type mask: torch.Tensor
-    :param mask_fill_value: The value to replace invalid elements with.
-    :type mask_fill_value: int
-    """
-    bins = bins if bins is not None else get_angle_bins(26)
-
-    binned_matrix = torch.zeros(euler_matrix.shape, dtype=torch.long)
-    for i, (lower_bound, upper_bound) in enumerate(bins):
-        bin_mask = (euler_matrix >= lower_bound).__and__(euler_matrix < upper_bound)
-        binned_matrix[bin_mask] = i
-
-    # Set masked bins to mask_fill_value
-    if mask is not None:
-        n = len(mask)
-        not_mask = torch.ones(n).type(dtype=mask.dtype) - mask  # Set 1's to 0's and vice versa
-        not_mask = not_mask.unsqueeze(0)  # Expand to two dimensions
-        not_mask = not_mask.expand(n, n) + not_mask.transpose(0, 1).expand(n, n)
-        binned_matrix[not_mask > 0] = mask_fill_value
-
-    return binned_matrix
 
 
 def bin_dist_angle_matrix(dist_angle_mat, num_bins=26):
@@ -333,119 +230,6 @@ def generate_dist_matrix(coords, mask=None, mask_fill_value=-1):
         dist_mat[not_mask > 0] = mask_fill_value
 
     return dist_mat
-
-
-def protein_dist_matrix(pdb_file, mask=None, remove_missing_n_term=False):
-    """Gets the distance matrix using C-beta to C-beta distances in a PDB file"""
-    p = PDBParser()
-    file_name = splitext(basename(pdb_file))[0]
-    structure = p.get_structure(file_name, pdb_file)
-    residues = [r for r in structure.get_residues()]
-
-    def get_cb_or_ca(residue):
-        if 'CB' in residue:
-            return residue['CB']
-        elif 'CA' in residue:
-            return residue['CA']
-        else:
-            return -1
-
-    backbone = [get_cb_or_ca(r) for r in residues]
-    coords = [_.get_coord() if _ != -1 else [0, 0, 0] for _ in backbone]
-    if mask is None:
-        mask = torch.ByteTensor([1 if _ != -1 else 0 for _ in backbone])
-    return generate_dist_matrix(torch.Tensor(coords), mask=mask)
-
-
-def generate_euler_matrix(n_coords, ca_coords, c_coords, mask=None, mask_fill_value=-1):
-    """Generates a matrix of pairwise z,x,z Euler rotations between residues.
-
-    :param coords_n:
-        An nx3 tensor of N atom coordinates.
-    :type coords_n: torch.Tensor
-    :param coords_ca:
-        An nx3 tensor of CA atom coordinates.
-    :type coords_ca: torch.Tensor
-    :param coords_c:
-        An nx3 tensor of C atom coordinates.
-    :type coords_c: torch.Tensor
-    :return: A matrix of rotations between alpha-carbons.
-    :rtype: torch.Tensor
-    """
-    N = ca_coords.shape[0]
-    dim = ca_coords.shape[1]
-
-    z_mat = c_coords - ca_coords
-    z_mat /= z_mat.norm(dim=1).unsqueeze(1).expand(z_mat.shape)
-
-    a_mat = n_coords - ca_coords
-    y_mat = a_mat - torch.bmm(a_mat.view(N, 1, dim), z_mat.view(N, dim, 1)).reshape(N, 1).expand(N, dim) * z_mat
-    y_mat /= y_mat.norm(dim=1).unsqueeze(1).expand(y_mat.shape)
-
-    x_mat = y_mat.cross(z_mat, dim=1)
-
-    f_mat = torch.cat([x_mat, y_mat, z_mat], dim=1).view(N, 3, dim)
-    f_mat_inv = f_mat.transpose(1,2)
-    rot_mat = f_mat.unsqueeze(0).matmul(f_mat_inv.unsqueeze(1))
-
-    phi = torch.atan2(rot_mat[:,:,0,2], rot_mat[:,:,1,2]).unsqueeze(2)
-    psi = torch.atan2(rot_mat[:, :, 2, 0], rot_mat[:, :, 2, 1]).unsqueeze(2)
-    theta = torch.acos(rot_mat[:, :, 2, 2]).unsqueeze(2)
-
-    euler_mat = torch.cat([phi, psi, theta], dim=2)
-
-    if mask is not None:
-        n = len(mask)
-        not_mask = torch.ones(n).type(dtype=mask.dtype) - mask  # Set 1's to 0's and vice versa
-
-        # Expand not_mask to an nxn Tensor such that row i is filled with
-        # not_mask[i]'s value, then add the original not_mask vector to each row.
-        # Example:
-        # not_mask = [0, 0, 1, 1, 0]
-        #             |0, 0, 0, 0, 0|   |0, 0, 1, 1, 0|   |0, 0, 1, 1, 0|
-        #             |0, 0, 0, 0, 0|   |0, 0, 1, 1, 0|   |0, 0, 1, 1, 0|
-        # operation = |1, 1, 1, 1, 1| + |0, 0, 1, 1, 0| = |1, 1, 2, 2, 1|
-        #             |1, 1, 1, 1, 1|   |0, 0, 1, 1, 0|   |1, 1, 2, 2, 1|
-        #             |0, 0, 0, 0, 0|   |0, 0, 1, 1, 0|   |0, 0, 1, 1, 0|
-        not_mask = not_mask.unsqueeze(0).transpose(0, 1).expand(n, n).add(not_mask)
-        euler_mat[not_mask > 0] = mask_fill_value
-
-    return euler_mat
-
-
-def protein_euler_matrix(pdb_file, mask=None):
-    """Gets a matrix of pairwise Euler rotations between residues in a PDB."""
-
-    p = PDBParser()
-    file_name = splitext(basename(pdb_file))[0]
-    structure = p.get_structure(file_name, pdb_file)
-    residues = [r for r in structure.get_residues()]
-
-    def get_n(residue):
-        if 'N' in residue:
-            return residue['N'].get_coord()
-        else:
-            return [0, 0, 0]
-
-    def get_ca(residue):
-        if 'CA' in residue:
-            return residue['CA'].get_coord()
-        else:
-            return [0, 0, 0]
-
-    def get_c(residue):
-        if 'C' in residue:
-            return residue['C'].get_coord()
-        else:
-            return [0, 0, 0]
-
-    n_coords = [get_n(r) for r in residues]
-    ca_coords = [get_ca(r) for r in residues]
-    c_coords = [get_c(r) for r in residues]
-
-    if mask is None:
-        mask = torch.ByteTensor([1 if sum(_) != 0 else 0 for _ in ca_coords])
-    return generate_euler_matrix(torch.Tensor(n_coords), torch.Tensor(ca_coords), torch.Tensor(c_coords), mask=mask)
 
 
 def generate_cb_cb_dihedral(ca_coords, cb_coords, mask=None, mask_fill_value=-1):    
@@ -581,17 +365,6 @@ def binned_dist_mat_to_values(dist_mat, num_bins=26):
         return dist_value_mat
 
 
-def binned_euler_mat_to_values(euler_mat, num_bins=26):
-    if len(euler_mat.shape) == 3:
-        angle_bin_values = get_bin_values(get_angle_bins(num_bins))
-        euler_value_mat = torch.zeros(euler_mat.shape[0], euler_mat.shape[1], euler_mat.shape[2])
-        for i in range(euler_value_mat.shape[0]):
-            for j in range(euler_value_mat.shape[1]):
-                for k in range(euler_value_mat.shape[2]):
-                    euler_value_mat[i, j, k] = angle_bin_values[euler_mat[i, j, k]]
-        return euler_value_mat
-
-
 def binned_mat_to_values(binned_mat, num_bins=26):
     dist_bins = get_dist_bins(num_bins)
     omega_bins = get_omega_bins(num_bins)
@@ -607,28 +380,6 @@ def binned_mat_to_values(binned_mat, num_bins=26):
                     value_mat[mat_i, i, j] = bin_values[binned_mat[mat_i, i, j].item()]
     
     return value_mat
-
-
-def euler_matrix_to_axis_angles(euler_mat):
-    """Calculates angles between the x,y,z axes of two coordinate systems based on Euler rotations"""
-
-    print(euler_mat.dtype)
-    phi, psi, theta = euler_mat
-
-    # TODO: Remove unnecessary A matrix element calculations - not needed?
-    A = torch.zeros(3, 3, euler_mat.shape[1], euler_mat.shape[2]).float()
-    A[0, 0] = torch.cos(phi) * torch.cos(psi) - torch.cos(theta) * torch.sin(phi) * torch.sin(psi)
-    A[0, 1] = -1 * torch.cos(phi) * torch.sin(psi) - torch.cos(theta) * torch.cos(psi) * torch.sin(phi)
-    A[0, 2] = torch.sin(phi) * torch.sin(theta)
-    A[1, 0] = torch.cos(psi) * torch.sin(phi) + torch.cos(phi) * torch.cos(theta) * torch.sin(psi)
-    A[1, 1] = torch.cos(phi) * torch.cos(theta) * torch.cos(psi) - torch.sin(phi) * torch.sin(psi)
-    A[1, 2] = -1 * torch.cos(phi) * torch.sin(theta)
-    A[2, 0] = torch.sin(theta) * torch.sin(psi)
-    A[2, 1] = torch.cos(psi) * torch.sin(theta)
-    A[2, 2] = torch.cos(theta)
-
-    axis_angles = torch.acos(torch.diagonal(A).transpose(0, 2))
-    return axis_angles
 
 
 def mask_matrix_(mat, mask, not_mask_fill_value=-1):
@@ -795,3 +546,46 @@ def pdb2fasta(pdb_file, num_chains=None):
         fasta += '{}\n'.format(seq)
     return fasta
 
+
+def load_model(file_name, num_blocks1D=3, num_blocks2D=25):
+    """Loads a model from a pickle file
+
+    :param file_name:
+        A pickle file containing a dictionary with the following keys:
+            state_dict: The state dict of the H3ResNet model
+            num_blocks1D: The number of one dimensional ResNet blocks
+            num_blocks2D: The number of two dimensional ResNet blocks
+            dilation (optional): The dilation cycle of the model
+    :param num_blocks1D:
+        If num_blocks1D is not in the pickle file, then this number is used for
+        the amount of one dimensional residual blocks.
+    :param num_blocks2D:
+        If num_blocks2D is not in the pickle file, then this number is used for
+        the amount of two dimensional residual blocks.
+    """
+    if not isfile(file_name):
+        raise FileNotFoundError(f'No file at {file_name}')
+    checkpoint_dict = torch.load(file_name, map_location='cpu')
+    model_state = checkpoint_dict['model_state_dict']
+
+    dilation_cycle = 0 if not 'dilation_cycle' in checkpoint_dict else checkpoint_dict[
+        'dilation_cycle']
+
+    in_layer = list(model_state.keys())[0]
+    out_layer = list(model_state.keys())[-1]
+    num_out_bins = model_state[out_layer].shape[0]
+    in_planes = model_state[in_layer].shape[1]
+
+    if 'num_blocks1D' in checkpoint_dict:
+        num_blocks1D = checkpoint_dict['num_blocks1D']
+    if 'num_blocks2D' in checkpoint_dict:
+        num_blocks2D = checkpoint_dict['num_blocks2D']
+
+    resnet = H3ResNet(in_planes=in_planes, num_out_bins=num_out_bins,
+                      num_blocks1D=num_blocks1D, num_blocks2D=num_blocks2D,
+                      dilation_cycle=dilation_cycle)
+    model = nn.Sequential(resnet)
+    model.load_state_dict(model_state)
+    model.eval()
+
+    return model
