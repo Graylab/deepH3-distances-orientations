@@ -1,3 +1,5 @@
+beautifulsoup4>=4.6.0
+requests>=2.22.0
 tqdm>=4.32.2
 pandas>=0.24.2
 torchvision>=0.3.0
