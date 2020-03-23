@@ -67,4 +67,13 @@ torch, tensorboard (2.1 or higher), biopython (see requirements.txt for the comp
 3. K. He, X. Zhang, S. Ren, and J. Sun, “Deep Residual Learning for Image Recognition,” 
    2016 IEEE Conference on Computer Vision and Pattern Recognition (CVPR), 2016.
    Available: [arXix:1512.03385](https://arxiv.org/abs/1512.03385)
+4. J. Yang, I. Anishchenko, H. Park, Z. Peng, S. Ovchinnikov and D. Baker, 
+   “Improved protein structure prediction using predicted interresidue orientations.,” 
+   Proceedings of the National Academy of Sciences, 2020. 
+   [Google Scholar](https://scholar.google.com/scholar_lookup?author=J.+Yang&author=I.+Anishchenko&author=H.+Park&author=Z.+Peng&author=S.+Ovchinnikov&author=D.+Baker&title=Improved+protein+structure+prediction+using+predicted+interresidue+orientations&publication_year=2020&journal=Proceedings+of+the+National+Academy+of+Sciences)
+5. B. D. Weitzner, D. Kuroda, N. Marze, J. Xu and J. J. Gray, “Blind prediction 
+   performance of RosettaAntibody 3.0: grafting, relaxation, kinematic loop modeling, 
+   and full CDR optimization.,” Proteins: Structure, Function, and Bioinformatics, 
+   vol. 82, no. 8, pp. 1611–1623, 2014.
+   [Google Scholar](https://scholar.google.com/scholar_lookup?author=B.+D.+Weitzner&author=D.+Kuroda&author=N.+Marze&author=J.+Xu&author=J.+J.+Gray&title=Blind+prediction+performance+of+RosettaAntibody+3.0%3A+grafting%2C+relaxation%2C+kinematic+loop+modeling%2C+and+full+CDR+optimization&publication_year=2014&journal=Proteins%3A+Structure%2C+Function%2C+and+Bioinformatics&volume=82&pages=1611-1623)
 

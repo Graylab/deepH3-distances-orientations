@@ -1,6 +1,8 @@
+import numpy as np
+import pandas as pd
 from os import listdir
 from os.path import join
-from deeph3.util import protein_dist_angle_matrix, get_pdb_atoms, _aa_dict, letter_to_num
+from deeph3.util import protein_dist_angle_matrix, _aa_dict, letter_to_num
 from os.path import basename, splitext
 from Bio import SeqIO
 from Bio.SeqUtils import seq1
@@ -9,6 +11,28 @@ from Bio.PDB import PDBParser
 
 def get_id(pdb_file_path):
     return splitext(basename(pdb_file_path))[0]
+
+
+def get_pdb_atoms(pdb_file_path):
+    """Returns a list of the atom coordinates, and their properties in a pdb file
+    :param pdb_file_path:
+    :return:
+    """
+    with open(pdb_file_path, 'r') as f:
+        lines = [line for line in f.readlines() if 'ATOM' in line]
+    column_names = ['atom_num', 'atom_name', 'alternate_location_indicator',
+                    'residue_name', 'chain_id', 'residue_num',
+                    'code_for_insertions_of_residues', 'x', 'y', 'z', 'occupancy',
+                    'temperature_factor', 'segment_identifier', 'element_symbol']
+    # Get the index at which each column starts/ends
+    column_ends = np.array([3, 10, 15, 16, 19, 21, 25, 26, 37, 45, 53,
+                            59, 65, 75, 77])
+    column_starts = column_ends[:-1] + 1
+    column_ends = column_ends[1:]  # Ignore the first column (just says 'ATOM')
+
+    rows = [[l[start:end+1].replace(' ', '') for start, end in zip(column_starts, column_ends)]
+            for l in lines]
+    return pd.DataFrame(rows, columns=column_names)
 
 
 def antibody_db_seq_info(fasta_dir):
@@ -42,7 +66,7 @@ def antibody_db_seq_info(fasta_dir):
                     msg = ('Expected a heavy chain or light chain, marked as \'H\' '
                            ' or \'L\'. Got a chain id of :{} from protein {}')
                     raise ValueError(msg.format(chain_id, chain.id))
-                except:
+                except Exception:
                     raise ValueError(
                         '{} does not have >name:chain format'.format(fasta_file))
 
@@ -60,7 +84,7 @@ def antibody_db_seq_info(fasta_dir):
 
 
 def get_chain_seqs(fasta_file_path):
-    """Gets the sequnce of each chain in a
+    """Gets the sequnce of each chain in a fasta file
     :param fasta_file_path: The fasta file to read in.
     :return:
         A dictionary where the key is the chain id and the value is a list of
@@ -92,7 +116,6 @@ def get_cdr_indices(pdb_file_path):
         and the value is a 2-tuple of the index range of residues in the loop.
     :rtype: dict
     """
-    # Create the flanked range (cdr range plus/minus a flank)
     cdr_ranges = {'h1': [26, 35],
                   'h2': [50, 65],
                   'h3': [95, 102],

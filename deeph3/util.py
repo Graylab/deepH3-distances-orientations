@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import pandas as pd
 import numpy as np
 import math
 import re
@@ -335,7 +334,7 @@ def generate_dist_matrix(coords, mask=None, mask_fill_value=-1):
     return dist_mat
 
 
-def protein_dist_matrix(pdb_file, mask=None, remove_missing_n_term=False):
+def protein_dist_matrix(pdb_file, mask=None):
     """Gets the distance matrix using C-beta to C-beta distances in a PDB file"""
     p = PDBParser()
     file_name = splitext(basename(pdb_file))[0]
@@ -753,29 +752,6 @@ def fill_diagonally_(matrix, diagonal_index, fill_value=0, fill_method='below'):
         matrix[i, left_bound:right_bound] = fill_value
 
 
-def get_pdb_atoms(pdb_file_path):
-    """Returns a list of the atom coordinates, and their properties in a pdb file
-    :param pdb_file_path:
-    :return:
-    """
-    with open(pdb_file_path, 'r') as f:
-        lines = [line for line in f.readlines() if 'ATOM' in line]
-    column_names = ['atom_num', 'atom_name', 'alternate_location_indicator',
-                    'residue_name', 'chain_id', 'residue_num',
-                    'code_for_insertions_of_residues', 'x', 'y', 'z', 'occupancy',
-                    'temperature_factor', 'segment_identifier', 'element_symbol']
-    column_ends = np.array([3, 10, 15, 16, 19, 21, 25, 26, 37, 45, 53,
-                            59, 65, 75, 77])
-    column_starts = column_ends[:-1] + 1
-
-    # Ignore the first ATOM column
-    column_ends = column_ends[1:]
-
-    rows = [[l[start:end+1].replace(' ', '') for start, end in zip(column_starts, column_ends)]
-            for l in lines]
-    return pd.DataFrame(rows, columns=column_names)
-
-
 def pdb2fasta(pdb_file, num_chains=None):
     pdb_id = basename(pdb_file).split('.')[0]
     parser = PDBParser()
@@ -790,8 +766,10 @@ def pdb2fasta(pdb_file, num_chains=None):
     fasta = ''
     for chain in structure.get_chains():
         id_ = chain.id
-        seq = seq1(''.join([residue.resname for residue in chain]))
+        seq = seq1(''.join([residue.resname for residue in chain if residue.resname != 'X']))
         fasta += '>{}:{}\t{}\n'.format(pdb_id, id_, len(seq))
-        fasta += '{}\n'.format(seq)
+        max_line_length = 80
+        for i in range(0, len(seq), max_line_length):
+            fasta += f'{seq[i:i + max_line_length]}\n'
     return fasta
 
