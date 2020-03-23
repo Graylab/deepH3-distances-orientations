@@ -4,7 +4,7 @@ import torch
 import torch.utils.data as data
 import torch.nn.functional as F
 from tqdm import tqdm
-from deeph3.util import pad_data_to_same_shape, get_dist_bins, get_omega_bins, get_theta_bins, get_phi_bins, bin_distance_matrix, bin_euler_matrix, bin_dist_angle_matrix
+from deeph3.util import pad_data_to_same_shape, get_dist_bins, get_omega_bins, get_theta_bins, get_phi_bins, bin_dist_angle_matrix
 
 
 class H5AntibodyDataset(data.Dataset):

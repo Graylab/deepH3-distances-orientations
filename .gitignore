@@ -92,3 +92,6 @@ deeph3/data/scripts/outerr/
 ROSETTA_CRASH.log
 deeph3/WeightedCrossEntropyLoss.pyc
 deeph3/__init__.pyc
+deeph3/jefftest.py
+deeph3/model_out.p
+deeph3/VHH_out.p
