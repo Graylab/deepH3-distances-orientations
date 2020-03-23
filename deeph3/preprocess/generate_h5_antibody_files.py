@@ -2,7 +2,7 @@ import h5py
 import numpy as np
 import argparse
 from tqdm import tqdm
-from deeph3.preprocess import antibody_text_parser as parser
+from deeph3.preprocess import antibody_text_parser as ab_parser
 from os import listdir, remove
 import os.path as path
 from pathlib import Path
@@ -14,7 +14,7 @@ def antibody_to_h5(pdb_dir, out_file_path, fasta_dir=None,
     num_seqs = len(pdb_files)
 
     if fasta_dir is not None:
-        seq_info = parser.antibody_db_seq_info(fasta_dir)
+        seq_info = ab_parser.antibody_db_seq_info(fasta_dir)
         max_h_len = seq_info['max_heavy_seq_len']
         max_l_len = seq_info['max_light_seq_len']
         max_total_len = seq_info['max_total_seq_len']
@@ -79,13 +79,13 @@ def antibody_to_h5(pdb_dir, out_file_path, fasta_dir=None,
 
     for index, file in tqdm(enumerate(pdb_files), disable=(not print_progress), total=len(pdb_files)):
         # Get all file names
-        id_ = parser.get_id(file)
+        id_ = ab_parser.get_id(file)
         pdb_file = str(path.join(pdb_dir, id_ + '.pdb'))
 
         fasta_file = None if fasta_dir is None else str(
             path.join(fasta_dir, id_ + '.fasta'))
-        info = parser.get_info(pdb_file, fasta_file=fasta_file,
-                               verbose=False)
+        info = ab_parser.get_info(pdb_file, fasta_file=fasta_file,
+                                  verbose=False)
 
         # Get primary structures
         heavy_prim = info['H']

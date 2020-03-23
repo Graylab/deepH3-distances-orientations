@@ -25,7 +25,7 @@ def predict(model, fasta_file, chain_delimiter=True, binning_method='max',
                 theta_matrix=theta, phi_matrix=phi)
 
 
-def load_model(file_name, num_blocks1D=3, num_blocks2D=25):
+def load_model(file_name, num_blocks1D=3, num_blocks2D=25, dilation_cycle=0):
     """Loads a model from a pickle file
 
     :param file_name:
@@ -40,20 +40,22 @@ def load_model(file_name, num_blocks1D=3, num_blocks2D=25):
     :param num_blocks2D:
         If num_blocks2D is not in the pickle file, then this number is used for
         the amount of two dimensional residual blocks.
+    :param dilation_cycle:
+        If dilation_cycle is not in the pickle file, then this number is used for
+        the dilation cycle.
     """
     if not isfile(file_name):
         raise FileNotFoundError(f'No file at {file_name}')
     checkpoint_dict = torch.load(file_name, map_location='cpu')
     model_state = checkpoint_dict['model_state_dict']
 
-    dilation_cycle = 0 if not 'dilation_cycle' in checkpoint_dict else checkpoint_dict[
-        'dilation_cycle']
-
     in_layer = list(model_state.keys())[0]
     out_layer = list(model_state.keys())[-1]
     num_out_bins = model_state[out_layer].shape[0]
     in_planes = model_state[in_layer].shape[1]
 
+    if 'dilation_cycle' in checkpoint_dict:
+        dilation_cycle = checkpoint_dict['dilation_cycle']
     if 'num_blocks1D' in checkpoint_dict:
         num_blocks1D = checkpoint_dict['num_blocks1D']
     if 'num_blocks2D' in checkpoint_dict:
