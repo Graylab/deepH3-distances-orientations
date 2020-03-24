@@ -23,23 +23,6 @@ following command:
 export PYTHONPATH="$PYTHONPATH:/absolute/path/to/deepH3-distances-orientations"
 ```
 
-## Prediction
-To predict the binned distance and angle matrices for a given antibody sequence (in a fasta file), run:
-```
-cd deeph3
-python predict.py --fasta_file [fasta file path] --model [model file path]
-```
-The fasta file must have the following format:
-```
->[PDB ID]:H	[heavy chain sequence length]
-[heavy chain sequence]
->[PDB ID]:L	[light chain sequence length]
-[light chain sequence]
-```
-See deeph3/data/antibody_dataset/fastas_testrun for an example.
-
-Other arguments can be listed using the `--help` or `-h` option.
-
 ## Training
 To train a model using a non-redundant set of bound and unbound antibodies 
 downloaded from SAbDab, run:
@@ -49,6 +32,48 @@ python train.py
 ```
 
 By default, structures are selected from SAbDab with paired VH/VL chains, a resolution of 3 A or better, and at most 99% sequence identity (ie, the set used in our [original preprint](https://doi.org/10.1101/2020.02.09.940254).)
+
+Other arguments can be listed using the `--help` or `-h` option.
+
+Note that you can skip this step since the [model described in our paper is available in this archive](deeph3/models/fully_trained_model.p)
+
+## Prediction
+To predict the binned distance and angle matrices for a given antibody sequence (in a fasta file), run:
+```
+cd deeph3
+python predict.py [--fasta_file [fasta file path] --model [model file path]]
+```
+The fasta file must have the following format:
+```
+>[PDB ID]:H	[heavy chain sequence length]
+[heavy chain sequence]
+>[PDB ID]:L	[light chain sequence length]
+[light chain sequence]
+```
+
+Output is in the form of a pickle file (model_out.p) containing the predicted distance and orientation distributions.
+
+See deeph3/data/antibody_dataset/fastas_testrun for an example.
+
+Other arguments can be listed using the `--help` or `-h` option.
+
+## Generating Constraints
+To generate constraint files to use in Rosetta, run:
+```
+cd deeph3
+python generate_constraints.py [--fasta_file [fasta file path] --model [model file path]]
+```
+The fasta file must have the following format:
+```
+>[PDB ID]:H	[heavy chain sequence length]
+[heavy chain sequence]
+>[PDB ID]:L	[light chain sequence length]
+[light chain sequence]
+```
+
+By default, the program will run the 1a0q example from the fasta files in `data/`.
+
+Output will go to `output_dir/` as a file `constraints` to use in Rosetta as `-constraint_file deeph3/output_dir/constraints`. In turn, that file references a set of data files with spline parameters in `output_dir/constraint_histograms`.
 
 Other arguments can be listed using the `--help` or `-h` option.
 
