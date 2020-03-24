@@ -1,25 +1,27 @@
 # Deep H3 Loop Prediction
 A deep residual network architecture to predict probability distributions of 
-inter-residue distances and angles for CDR H3 loops in antibodies. This work is protected by https://creativecommons.org/licenses/by-nc/3.0/.
+inter-residue distances and angles for CDR H3 loops in antibodies. This work is protected by https://creativecommons.org/licenses/by-nc/3.0/. Please cite:
+
+* Ruffolo JA, Guerra C, Mahajan SP, Sulam J, & Gray JJ, "Geometric Potentials from Deep Learning Improve Prediction of CDR H3 Loop Structures," *bioRXiv* 2020. [doi:10.1101/2020.02.09.940254](https://doi.org/10.1101/2020.02.09.940254)
 
 ResNet part of the code is re-implemented from https://github.com/KaimingHe/resnet-1k-layers which was based on \
 https://github.com/facebook/fb.resnet.torch. Network architecture is based on that of Wang et al. ([RaptorX-Contact](https://github.com/j3xugit/RaptorX-Contact)), and geometric descriptors based on Yang et al. ([trRosetta](https://github.com/gjoni/trRosetta)) (references below).
 
 ## Trained Model 
-Model trained on ~ 1400 antibodies from the SAbDab Database is available here
+Model trained on ~ 1400 antibodies from the SAbDab Database is available in
 deeph3/models/
 
-## Setup
-See requirements section, and make sure that your PYTHONPATH environmental 
-variable has the deepH3-distances-orientations/ directory. On linux, use the
-following command to do so:
+## Requirements and Setup
+torch, tensorboard (2.1 or higher), biopython (see requirements.txt for the complete list)
+
+Be sure that your PYTHONPATH environment variable has the deepH3-distances-orientations/ directory. On linux, use the
+following command:
 ```
 export PYTHONPATH="$PYTHONPATH:/absolute/path/to/deepH3-distances-orientations"
 ```
 
 ## Prediction
-For predicting the binned distance and angle matrices for a given fasta file
-enter:
+To predict the binned distance and angle matrices for a given antibody sequence (in a fasta file), run:
 ```
 python predict.py --fasta_file [fasta file path] --model [model file path]
 ```
@@ -32,20 +34,18 @@ The fasta file must have the following format:
 ```
 See deeph3/data/antibody_dataset/fastas_testrun for an example.
 
-Other optional arguments can be listed using the --help or -h option.
+Other arguments can be listed using the ```--help``` or ```-h``` option.
 
 ## Training
-For training a model using a non-redundant set of bound and unbound antibodies 
-from SAbDab with at most 99% sequence similarity, a resolution cutoff of 3, and
-with a paired VH/VL. By default, uses the model from https://doi.org/10.1101/2020.02.09.940254.
+To train a model using a non-redundant set of bound and unbound antibodies 
+downloaded from SAbDab, run:
 ```
 python train.py 
 ```
 
-Other optional arguments can be listed using the --help or -h option.
+By default, structures are selected from SAbDab with paired VH/VL chains, a resolution of 3 A or better, and at most 99% sequence identity (ie, the set used in our [original preprint](https://doi.org/10.1101/2020.02.09.940254).)
 
-## Requirements
-torch, tensorboard (2.1 or higher), biopython (see requirements.txt for the complete list)
+Other arguments can be listed using the ```--help``` or ```-h``` option.
 
 ## Authors
 * **Carlos Guerra** - [cguerramain](https://github.com/cguerramain)
@@ -57,8 +57,8 @@ torch, tensorboard (2.1 or higher), biopython (see requirements.txt for the comp
 * **Jeffrey Gray** - [jjgray](https://github.com/jjgray)
 
 ## References
-1. Kaiming He, Xiangyu Zhang, Shaoqing Ren, Jian Sun. Identity Mappings in Deep 
-   Residual Networks. In *ECCV*, 2016.
+1. Kaiming He, Xiangyu Zhang, Shaoqing Ren, Jian Sun, "Identity Mappings in Deep 
+   Residual Networks," *ECCV*, 2016.
    [arXiv:1603.05027](https://arxiv.org/abs/1603.05027)
 2. S. Wang, S. Sun, Z. Li, R. Zhang and J. Xu, "Accurate De Novo Prediction of 
    Protein Contact Map by Ultra-Deep Learning Model", *PLOS Computational 
