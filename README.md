@@ -66,7 +66,7 @@ Other arguments can be listed using the `--help` or `-h` option.
    [10.1371/journal.pcbi.1005324.](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1005324)
 3. K. He, X. Zhang, S. Ren, and J. Sun, “Deep Residual Learning for Image Recognition,” 
    2016 IEEE Conference on Computer Vision and Pattern Recognition (CVPR), 2016.
-   Available: [arXix:1512.03385](https://arxiv.org/abs/1512.03385)
+   [arXix:1512.03385](https://arxiv.org/abs/1512.03385)
 4. J. Yang, I. Anishchenko, H. Park, Z. Peng, S. Ovchinnikov and D. Baker, 
    “Improved protein structure prediction using predicted interresidue orientations.,” 
    Proceedings of the National Academy of Sciences, 2020. 
