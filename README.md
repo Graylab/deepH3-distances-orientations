@@ -12,7 +12,10 @@ Model trained on ~ 1400 antibodies from the SAbDab Database is available in
 deeph3/models/
 
 ## Requirements and Setup
-torch, tensorboard (2.1 or higher), biopython (see requirements.txt for the complete list)
+torch, tensorboard (2.1 or higher), biopython (see [requirements.txt](requirements.txt) for the complete list). Install with:
+```
+pip3 install -r requirements.txt [--user]
+```
 
 Be sure that your PYTHONPATH environment variable has the deepH3-distances-orientations/ directory. On linux, use the
 following command:
@@ -23,6 +26,7 @@ export PYTHONPATH="$PYTHONPATH:/absolute/path/to/deepH3-distances-orientations"
 ## Prediction
 To predict the binned distance and angle matrices for a given antibody sequence (in a fasta file), run:
 ```
+cd deeph3
 python predict.py --fasta_file [fasta file path] --model [model file path]
 ```
 The fasta file must have the following format:
@@ -40,6 +44,7 @@ Other arguments can be listed using the `--help` or `-h` option.
 To train a model using a non-redundant set of bound and unbound antibodies 
 downloaded from SAbDab, run:
 ```
+cd deeph3
 python train.py 
 ```
 
