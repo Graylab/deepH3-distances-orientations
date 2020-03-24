@@ -34,7 +34,7 @@ The fasta file must have the following format:
 ```
 See deeph3/data/antibody_dataset/fastas_testrun for an example.
 
-Other arguments can be listed using the ```--help``` or ```-h``` option.
+Other arguments can be listed using the `--help` or `-h` option.
 
 ## Training
 To train a model using a non-redundant set of bound and unbound antibodies 
@@ -45,7 +45,7 @@ python train.py
 
 By default, structures are selected from SAbDab with paired VH/VL chains, a resolution of 3 A or better, and at most 99% sequence identity (ie, the set used in our [original preprint](https://doi.org/10.1101/2020.02.09.940254).)
 
-Other arguments can be listed using the ```--help``` or ```-h``` option.
+Other arguments can be listed using the `--help` or `-h` option.
 
 ## Authors
 * **Carlos Guerra** - [cguerramain](https://github.com/cguerramain)
