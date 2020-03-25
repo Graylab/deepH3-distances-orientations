@@ -78,7 +78,7 @@ def truncate_chain(pdb_text, chain, resnum, newchain):
 
 
 def _get_HL_chains(pdb_path):
-    """Gets the heavy and light chain ID's from a chothia """
+    """Gets the heavy and light chain ID's from a chothia file from SAbDab"""
     # Get the line with the HCHAIN and LCHAIN
     hl_line = ''
     with open(pdb_path) as f:

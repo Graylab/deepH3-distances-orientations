@@ -1,15 +1,10 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import numpy as np
 import math
 import re
 import argparse
-from pathlib import Path
-from os import listdir
 from os.path import splitext, basename, isfile
-from tqdm import tqdm
-from shutil import copyfile
 from Bio import SeqIO
 from Bio.PDB import PDBParser
 from Bio.SeqUtils import seq1
@@ -17,9 +12,10 @@ from deeph3 import H3ResNet
 
 
 class RawTextArgumentDefaultsHelpFormatter(
-    argparse.ArgumentDefaultsHelpFormatter,
-    argparse.RawTextHelpFormatter
-):
+        argparse.ArgumentDefaultsHelpFormatter,
+        argparse.RawTextHelpFormatter):
+    """CLI help formatter that includes the default value in the help dialog
+    and formats as raw text i.e. can use escape characters."""
     pass
 
 
@@ -35,12 +31,6 @@ def letter_to_num(string, dict_):
     return num
 
 
-def load_full_seq(fasta_file):
-    """Concatenates the sequences of all the chains in a fasta file"""
-    with open(fasta_file, 'r') as f:
-        return ''.join([seq.rstrip() for seq in f.readlines() if seq[0] != '>'])
-
-
 def time_diff(start_time, end_time):
     """Returns the difference in time in HH:MM:SS format"""
     secs = int((end_time - start_time) % 60)
@@ -52,25 +42,6 @@ def time_diff(start_time, end_time):
 def one_hot_seq(seq):
     """Gets a one-hot encoded version of a protein sequence"""
     return F.one_hot(torch.LongTensor(letter_to_num(seq, _aa_dict)))
-
-
-def chunk(l, n):
-    """Gets the next n sized chunk from a list l"""
-    for i in range(0, len(l), n):
-        yield l[i:i+n]
-
-
-def generate_probabilities(logits):
-    """Transforms a 4d tensor of logits of shape (outmats, logits, N, N) to probabilities"""
-    if len(logits.shape) != 4:
-        raise ValueError('Expected a shape with four dimensions (outmats, channels, L, L), got {}'.format(logits.shape))
-
-    # Transform from [outmats, channels, L_i, L_j] to [outmats, L_i, L_j, channels]
-    logits = logits.transpose(1, 2)
-    logits = logits.transpose(2, 3)
-
-    # Get the probabilities of each bin at each position and predict the bins
-    return nn.Softmax(dim=3)(logits)
 
 
 def bin_matrix(in_tensor, are_logits=True, method='max'):
@@ -107,7 +78,13 @@ def bin_matrix(in_tensor, are_logits=True, method='max'):
         raise ValueError('method must be in {\'avg\',\'max\'}')
 
 
-def get_logits_from_model(model, fasta_file, chain_delimiter=False):
+def load_full_seq(fasta_file):
+    """Concatenates the sequences of all the chains in a fasta file"""
+    with open(fasta_file, 'r') as f:
+        return ''.join([seq.rstrip() for seq in f.readlines() if seq[0] != '>'])
+
+
+def get_logits_from_model(model, fasta_file, chain_delimiter=True):
     """Gets the probability distribution output of a H3ResNet model"""
     seq = one_hot_seq(load_full_seq(fasta_file)).float()
     if chain_delimiter:
@@ -126,6 +103,19 @@ def get_logits_from_model(model, fasta_file, chain_delimiter=False):
         return model(seq)[0]
 
 
+def generate_probabilities(logits):
+    """Transforms a 4d tensor of logits of shape (outmats, logits, N, N) to probabilities"""
+    if len(logits.shape) != 4:
+        raise ValueError('Expected a shape with four dimensions (outmats, channels, L, L), got {}'.format(logits.shape))
+
+    # Transform from [outmats, channels, L_i, L_j] to [outmats, L_i, L_j, channels]
+    logits = logits.transpose(1, 2)
+    logits = logits.transpose(2, 3)
+
+    # Get the probabilities of each bin at each position and predict the bins
+    return nn.Softmax(dim=3)(logits)
+
+
 def get_probs_from_model(model, fasta_file, **kwargs):
     """Gets the probability distribution output of a H3ResNet model"""
     logits = get_logits_from_model(model, fasta_file, **kwargs)
@@ -142,21 +132,21 @@ def get_dist_bins(num_bins):
 
 def get_omega_bins(num_bins):
     first_bin = -180
-    bin_width = 2 * 180 / (num_bins)
+    bin_width = 2 * 180 / num_bins
     bins = [(first_bin + bin_width * i, first_bin + bin_width * (i + 1)) for i in range(num_bins)]
     return bins
 
 
 def get_theta_bins(num_bins):
     first_bin = -180
-    bin_width = 2 * 180 / (num_bins)
+    bin_width = 2 * 180 / num_bins
     bins = [(first_bin + bin_width * i, first_bin + bin_width * (i + 1)) for i in range(num_bins)]
     return bins
 
 
 def get_phi_bins(num_bins):
     first_bin = 0
-    bin_width = 180 / (num_bins)
+    bin_width = 180 / num_bins
     bins = [(first_bin + bin_width * i, first_bin + bin_width * (i + 1)) for i in range(num_bins)]
     return bins
 
@@ -309,7 +299,7 @@ def protein_dist_angle_matrix(pdb_file, mask=None):
     structure = p.get_structure(file_name, pdb_file)
     residues = [r for r in structure.get_residues()]
 
-    def get_cb_or_ca(residue):
+    def get_cb_or_ca_coord(residue):
         if 'CB' in residue:
             return residue['CB'].get_coord()
         elif 'CA' in residue:
@@ -317,28 +307,16 @@ def protein_dist_angle_matrix(pdb_file, mask=None):
         else:
             return [0, 0, 0]
 
-    def get_ca(residue):
-        if 'CA' in residue:
-            return residue['CA'].get_coord()
+    def get_atom_coord(residue, atom_type):
+        if atom_type in residue:
+            return residue[atom_type].get_coord()
         else:
             return [0, 0, 0]
 
-    def get_cb(residue):
-        if 'CB' in residue:
-            return residue['CB'].get_coord()
-        else:
-            return [0, 0, 0]
-    
-    def get_n(residue):
-        if 'N' in residue:
-            return residue['N'].get_coord()
-        else:
-            return [0, 0, 0]
-
-    cb_ca_coords = torch.tensor([get_cb_or_ca(r) for r in residues])
-    ca_coords = torch.tensor([get_ca(r) for r in residues])
-    cb_coords = torch.tensor([get_cb(r) for r in residues])
-    n_coords = torch.tensor([get_n(r) for r in residues])
+    cb_ca_coords = torch.tensor([get_cb_or_ca_coord(r) for r in residues])
+    ca_coords = torch.tensor([get_atom_coord(r, 'CA') for r in residues])
+    cb_coords = torch.tensor([get_atom_coord(r, 'CB') for r in residues])
+    n_coords = torch.tensor([get_atom_coord(r, 'N') for r in residues])
 
     cb_mask = torch.ByteTensor([1 if sum(_) != 0 else 0 for _ in cb_coords])
     if mask is None:
@@ -381,15 +359,6 @@ def binned_mat_to_values(binned_mat, num_bins=26):
     return value_mat
 
 
-def mask_matrix_(mat, mask, not_mask_fill_value=-1):
-    """Applies a sequence mask to a matrix"""
-    n = len(mask)
-    mask = mask.unsqueeze(0)  # Expand to two dimensions
-    mask = mask.expand(n, n) + mask.transpose(0, 1).expand(n, n)
-    mat[mask > 0] = not_mask_fill_value
-    return mat
-
-
 def max_shape(data):
     """Gets the maximum length along all dimensions in a list of Tensors"""
     shapes = torch.Tensor([_.shape for _ in data])
@@ -413,57 +382,6 @@ def pad_data_to_same_shape(tensor_list, pad_value=0):
         padded_dataset[i] = padded_data
 
     return padded_dataset
-
-
-def split_dir(dir_path, split_proportions, dir_names=None, seed=0,
-              move_files=False, print_progress=False):
-    """Splits a directory into seperate directories at random"""
-    original_path = Path(dir_path)
-    if sum(split_proportions) != 1:
-        raise ValueError('split_proportions must add to 1.')
-    if dir_names is None:
-        fname = '{}_split'.format(original_path.absolute()) + '{}'
-        dir_names = [fname.format(i) for i in range(len(split_proportions))]
-
-    # Make each directory and throw an error if it already exists
-    for dir_name in dir_names:
-        dir_name = Path(dir_name)
-        if dir_name.exists():
-            msg = '{} already exists. Choose another directory name'
-            raise ValueError(msg.format(dir_name))
-        else:
-            dir_name.mkdir()
-
-    # Shuffle files
-    np.random.seed(seed)
-    files = np.array([original_path.joinpath(_) for _ in listdir(dir_path)
-                      if original_path.joinpath(_).is_file()])
-    np.random.shuffle(files)
-
-    # Copy/Move files over to new directories
-    cur_index = 0
-    if print_progress:
-        print('Splitting Directory...')
-    for i, (dir_name, prop) in tqdm(enumerate(zip(dir_names, split_proportions)), disable=(not print_progress)):
-        # If this is the last directory, put the rest of the files into it
-        if i == (len(dir_names) - 1):
-            end_index = len(files)
-        else:
-            end_index = cur_index + int(len(files) * prop)
-
-        target_files = files[cur_index:end_index]
-        cur_index = end_index
-
-        new_dir = Path(dir_name)
-        if print_progress:
-            action = 'Moving' if move_files else 'Copying'
-            print('{} files to {}...'.format(action, new_dir))
-        for file in tqdm(target_files, disable=(not print_progress)):
-            new_file = new_dir.joinpath(file.name)
-            if move_files:
-                raise NotImplementedError('Moving files not yet supported, use option to copy files')
-            else:
-                copyfile(file.absolute(), new_file.absolute())
 
 
 def fill_diagonally_(matrix, diagonal_index, fill_value=0, fill_method='below'):
@@ -504,6 +422,7 @@ def fill_diagonally_(matrix, diagonal_index, fill_value=0, fill_method='below'):
 
 
 def pdb2fasta(pdb_file, num_chains=None):
+    """Converts a PDB file to a fasta formatted string using its ATOM data"""
     pdb_id = basename(pdb_file).split('.')[0]
     parser = PDBParser()
     structure = parser.get_structure(pdb_id, pdb_file)
@@ -567,3 +486,4 @@ def load_model(file_name, num_blocks1D=3, num_blocks2D=25):
     model.eval()
 
     return model
+

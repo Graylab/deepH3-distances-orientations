@@ -1,11 +1,16 @@
 import torch
 import os
+import sys
+import io
 import math
 import argparse
-from glob import glob
-from tqdm import tqdm
-from deeph3.predict import load_model
-from deeph3.util import load_model, get_probs_from_model, bin_matrix, binned_dist_mat_to_values, get_dist_bins, get_omega_bins, get_theta_bins, get_phi_bins, get_bin_values, load_full_seq, RawTextArgumentDefaultsHelpFormatter
+from deeph3.util import load_model, get_probs_from_model, bin_matrix, binned_dist_mat_to_values, get_dist_bins, \
+    get_omega_bins, get_theta_bins, get_phi_bins, get_bin_values, load_full_seq, RawTextArgumentDefaultsHelpFormatter, \
+    pdb2fasta
+from Bio import SeqIO
+from Bio.PDB import PDBParser
+from bisect import bisect_left, bisect_right
+from tempfile import NamedTemporaryFile
 
 
 def generate_constraints(prob_mat, pred_dist_mat, h3_range, probability_threshold, seq, is_angle=False, symmetric=False):
@@ -147,7 +152,45 @@ def write_constraint_files(output_dir, seq, dist_constraints, omega_constraints,
             hist_dir, constraint_file, theta_constraints)
         create_phi_constraints(
             hist_dir, constraint_file, phi_constraints)
-        
+
+
+def heavy_chain_seq(pdb_file):
+    raw_fasta = pdb2fasta(pdb_file)
+    fasta = SeqIO.parse(io.StringIO(raw_fasta), 'fasta')
+    chain_sequences = {chain.id.split(':')[1]: str(chain.seq) for chain in fasta}
+    if 'H' not in chain_sequences.keys():
+        print('No heavy chain in PDB file. Heavy chains must have a chain ID '
+              'of "[PDB ID]:H"')
+        sys.exit(-1)
+    return chain_sequences['H']
+
+
+def h3_indices(chothia_pdb_file):
+    """Gets the index of """
+    parser = PDBParser()
+    pdb_id = os.path.basename(chothia_pdb_file).split('.')[0]
+    structure = parser.get_structure(pdb_id, chothia_pdb_file)
+    heavy_chain_structure = None
+    for chain in structure.get_chains():
+        if chain.id == 'H':
+            heavy_chain_structure = chain
+            break
+    if heavy_chain_structure is None:
+        print('PDB must have a heavy chain with chain id "[PBD ID]:H"')
+        sys.exit(-1)
+
+    residue_id_nums = [res.get_id()[1] for res in heavy_chain_structure]
+    # Binary search to find the start and end of the H3 loop
+    h3_start = bisect_left(residue_id_nums, 95)
+    h3_end = bisect_right(residue_id_nums, 102) - 1
+
+    if len(heavy_chain_seq(chothia_pdb_file)) != len(residue_id_nums):
+        print('ERROR in PDB file ' + chothia_pdb_file)
+        print('residue id len', len(residue_id_nums))
+        print('seq', len(heavy_chain_seq(chothia_pdb_file)))
+
+    return h3_start, h3_end
+
 
 def _get_args():
     """Gets command line arguments"""
@@ -161,6 +204,17 @@ def _get_args():
         ''')
     parser = argparse.ArgumentParser(description=desc,
                                      formatter_class=RawTextArgumentDefaultsHelpFormatter)
+    parser.add_argument('input_file', type=str,
+                        help='The file to generate constraints for.')
+    parser.add_argument('file_type', type=str,
+                        help=('The type of file that input_file is. This can either be "fasta", '
+                              'or "chothia" where chothia input are PDB files with chothia numbering'))
+    parser.add_argument('--h3_range', type=str, default=None, nargs=2,
+                        help=('The lower bound and upper bound (each inclusive) of the range of '
+                              'indices that the h3 loop encompasses in the sequence.\n'
+                              'For example, if an h3 loop began at index 95 and ended at index '
+                              '102 then "--h3_range 95 102" should be inputted. NOTE: This is only '
+                              'to be used on fasta input.'))
     parser.add_argument('--model_file', type=str,
                         default=default_model_path,
                         help=('A pickle file containing a dictionary with the following keys:\n'
@@ -168,36 +222,32 @@ def _get_args():
                               '    num_blocks1D: The number of one dimensional ResNet blocks\n'
                               '    num_blocks2D: The number of two dimensional ResNet blocks\n'
                               '    dilation (optional): The dilation cycle of the model'))
-    parser.add_argument('--fasta_file', type=str,
-                        default=default_fasta_path,
-                        help=('The fasta file to generate constraints for.'))
     parser.add_argument('--output_dir', type=str,
                         default='output_dir',
-                        help=('Output directory for constraints'))
+                        help='Output directory for constraints')
     parser.add_argument('--probability_threshold', type=float,
                         default=0.10,
-                        help=('Minimum modal probability threshold for constraints.'))
+                        help='Minimum modal probability threshold for constraints.')
     parser.add_argument('--topn_constraints', type=int,
                         default=0,
-                        help=('Generate N most confident constraints for each geometry (0 for all).'))
+                        help='Generate N most confident constraints for each geometry (0 for all).')
     return parser.parse_args()
 
 
 def print_run_params(args):
     print("Running sequence_to_loop")
-    print("     Config file : ",args.fasta_file)
-    print("  Work directory : ",args.model_file, flush=True)
+    print("     Config file : ", args.fasta_file)
+    print("  Work directory : ", args.model_file, flush=True)
     return
 
 
 def _cli():
     """Command line interface for generate_constraints.py when it is run as a script"""
     args = _get_args()
-    for key,value in vars(args).items():
-        print(key,": ",value)
+    for key, value in vars(args).items():
+        print(key, ": ", value)
 
     model_file = args.model_file
-    fasta_file = args.fasta_file
     output_dir = args.output_dir
     probability_threshold = args.probability_threshold
     topn_constraints = args.topn_constraints
@@ -205,7 +255,22 @@ def _cli():
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
 
-    h3 = [95, 102]
+    if args.file_type.lower() == 'fasta':
+        if args.h3_range is None:
+            print('FASTA file input requires a specified h3 loop range using '
+                  'the h3_range flag')
+            sys.exit(-1)
+        fasta_file = args.input_file
+        h3 = [int(_) for _ in args.h3_range]
+    elif args.file_type.lower() == 'chothia':
+        temp_file = NamedTemporaryFile()
+        with open(temp_file.name, 'w') as f:
+            f.writelines(pdb2fasta(args.input_file))
+        fasta_file = temp_file.name
+        h3 = h3_indices(args.input_file)
+    else:
+        print('Input file must either be a fasta file or a chothia numbered PDB file.')
+        sys.exit(-1)
     seq = load_full_seq(fasta_file)
 
     with torch.no_grad():
@@ -230,3 +295,12 @@ def _cli():
 
 if __name__ == '__main__':
     _cli()
+    """
+    import os
+    from tqdm import tqdm
+
+    dir_ = '/home/carlos/projects/deepH3-distances-orientations/deeph3/data/test_set'
+    for f in tqdm(os.listdir(dir_)):
+        h3_indices(dir_ + '/' + f)
+    """
+
