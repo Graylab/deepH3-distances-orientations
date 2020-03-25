@@ -236,9 +236,9 @@ def _get_args():
 
 def print_run_params(args):
     print("Running sequence_to_loop")
-    print("       Config file : ",args.fasta_file)
-    print("    Work directory : ",args.model_file)
-    print("  Output directory : ",args.output_dir,flush=True)
+    print("       Config file : ", args.fasta_file)
+    print("    Work directory : ", args.model_file)
+    print("  Output directory : ", args.output_dir, flush=True)
     return
 
 
@@ -273,8 +273,8 @@ def _cli():
         print('Input file must either be a fasta file or a chothia numbered PDB file.')
         sys.exit(-1)
     seq = load_full_seq(fasta_file)
-    print("Ab sequence: ",seq)
-    print("H3 sequence: ",seq[h3[0]:h3[1]])
+    print("Ab sequence: ", seq)
+    print("H3 sequence: ", seq[h3[0]:h3[1]])
 
     with torch.no_grad():
         model = load_model(model_file)
