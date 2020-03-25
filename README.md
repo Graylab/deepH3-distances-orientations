@@ -51,7 +51,7 @@ The fasta file must have the following format:
 [light chain sequence]
 ```
 
-Output is in the form of a pickle file (model_out.p) containing the predicted distance and orientation distributions.
+Output is in the form of a pickle file (\[fasta_file_basename\].p) containing the predicted distance and orientation distributions.
 
 See deeph3/data/antibody_dataset/fastas_testrun for an example.
 
@@ -73,7 +73,7 @@ The fasta file must have the following format:
 
 By default, the program will run the 1a0q example from the fasta files in `data/`.
 
-Output will go to `output_dir/` as a file `constraints` to use in Rosetta as `-constraint_file deeph3/output_dir/constraints`. In turn, that file references a set of data files with spline parameters in `output_dir/constraint_histograms`.
+Output will go to `output_dir/` as a file (for example) `1a0q.constraints` to use in Rosetta as `-constraint_file deeph3/output_dir/1a0q.constraints`. In turn, that file references a set of data files with spline parameters in `output_dir/1a0q.histograms/`.
 
 Other arguments can be listed using the `--help` or `-h` option.
 
