@@ -171,6 +171,9 @@ def _get_args():
     parser.add_argument('--fasta_file', type=str,
                         default=default_fasta_path,
                         help=('The fasta file to generate constraints for.'))
+    parser.add_argument('--h3',type=str,
+                        default="95-102",
+                        help='CDR H3 residue number range, sequentially in the fasta file (default 95-102)')
     parser.add_argument('--output_dir', type=str,
                         default='output_dir',
                         help=('Output directory for constraints'))
@@ -207,8 +210,11 @@ def _cli():
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
 
-    h3 = [95, 102]
+    h3str = args.h3.split('-')
+    h3 = list(map(int, h3str))
     seq = load_full_seq(fasta_file)
+    print("Ab sequence: ",seq)
+    print("H3 sequence: ",seq[h3[0]:h3[1]])
 
     with torch.no_grad():
         model = load_model(model_file)
