@@ -5,7 +5,7 @@ import argparse
 from glob import glob
 from tqdm import tqdm
 from deeph3.predict import load_model
-from deeph3.util import load_model, get_probs_from_model, bin_matrix, binned_dist_mat_to_values, get_dist_bins, get_omega_bins, get_theta_bins, get_phi_bins, get_bin_values, load_full_seq, RawTextArgumentDefaultsHelpFormatter
+from deeph3.util import load_model, get_probs_from_model, bin_matrix, binned_dist_mat_to_values, get_dist_bins, get_omega_bins, get_theta_bins, get_phi_bins, get_bin_values, load_full_seq, RawTextArgumentDefaultsHelpFormatter, get_fasta_basename
 
 
 def generate_constraints(prob_mat, pred_dist_mat, h3_range, probability_threshold, seq, is_angle=False, symmetric=False):
@@ -132,12 +132,12 @@ def create_phi_constraints(hist_dir, constraint_file, constraints):
         ))
 
 
-def write_constraint_files(output_dir, seq, dist_constraints, omega_constraints, theta_constraints, phi_constraints):
-    hist_dir = os.path.join(output_dir, "constraint_histograms")
+def write_constraint_files(output_dir, fname, seq, dist_constraints, omega_constraints, theta_constraints, phi_constraints):
+    hist_dir = os.path.join(output_dir, fname+".histograms")
     if not os.path.exists(hist_dir):
         os.mkdir(hist_dir)
     
-    constraint_file = os.path.join(output_dir, "constraints")
+    constraint_file = os.path.join(output_dir, fname+".constraints")
     with open(constraint_file, "w") as constraint_file:
         create_dist_constraints(
             hist_dir, constraint_file, dist_constraints, seq)
@@ -153,7 +153,7 @@ def _get_args():
     """Gets command line arguments"""
     constraint_generation_py_path = os.path.dirname(os.path.realpath(__file__))
     default_model_path = os.path.join(constraint_generation_py_path, 'models/fully_trained_model.p')
-    default_fasta_path = os.path.join(constraint_generation_py_path, 'data/antibody_dataset/fastas_testrun/1a0q_trunc.fasta')
+    default_fasta_path = os.path.join(constraint_generation_py_path, 'data/antibody_dataset/fastas_testrun/1a0q.fasta')
 
     desc = (
         '''
@@ -185,8 +185,9 @@ def _get_args():
 
 def print_run_params(args):
     print("Running sequence_to_loop")
-    print("     Config file : ",args.fasta_file)
-    print("  Work directory : ",args.model_file, flush=True)
+    print("       Config file : ",args.fasta_file)
+    print("    Work directory : ",args.model_file)
+    print("  Output directory : ",args.output_dir,flush=True)
     return
 
 
@@ -198,6 +199,7 @@ def _cli():
 
     model_file = args.model_file
     fasta_file = args.fasta_file
+    basename = get_fasta_basename(fasta_file) 
     output_dir = args.output_dir
     probability_threshold = args.probability_threshold
     topn_constraints = args.topn_constraints
@@ -225,7 +227,7 @@ def _cli():
     theta_constraints = theta_constraints[:topn_constraints] if topn_constraints > 0 else theta_constraints
     phi_constraints = phi_constraints[:topn_constraints] if topn_constraints > 0 else phi_constraints
 
-    write_constraint_files(output_dir, seq, dist_constraints, omega_constraints, theta_constraints, phi_constraints)
+    write_constraint_files(output_dir, basename, seq, dist_constraints, omega_constraints, theta_constraints, phi_constraints)
 
 
 if __name__ == '__main__':

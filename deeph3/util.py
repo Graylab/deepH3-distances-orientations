@@ -525,6 +525,12 @@ def pdb2fasta(pdb_file, num_chains=None):
     return fasta
 
 
+def get_fasta_basename(fasta_file):
+    base = basename(fasta_file) # extract filename w/o path
+    if splitext(base)[1]=='.fasta': base = splitext(base)[0]  # remove .fasta if present
+    return base
+
+
 def load_model(file_name, num_blocks1D=3, num_blocks2D=25):
     """Loads a model from a pickle file
 
