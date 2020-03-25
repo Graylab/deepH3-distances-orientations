@@ -137,12 +137,12 @@ def create_phi_constraints(hist_dir, constraint_file, constraints):
         ))
 
 
-def write_constraint_files(output_dir, seq, dist_constraints, omega_constraints, theta_constraints, phi_constraints):
-    hist_dir = os.path.join(output_dir, "constraint_histograms")
+def write_constraint_files(output_dir, fname, seq, dist_constraints, omega_constraints, theta_constraints, phi_constraints):
+    hist_dir = os.path.join(output_dir, fname+".histograms")
     if not os.path.exists(hist_dir):
         os.mkdir(hist_dir)
     
-    constraint_file = os.path.join(output_dir, "constraints")
+    constraint_file = os.path.join(output_dir, fname+".constraints")
     with open(constraint_file, "w") as constraint_file:
         create_dist_constraints(
             hist_dir, constraint_file, dist_constraints, seq)
@@ -152,7 +152,7 @@ def write_constraint_files(output_dir, seq, dist_constraints, omega_constraints,
             hist_dir, constraint_file, theta_constraints)
         create_phi_constraints(
             hist_dir, constraint_file, phi_constraints)
-
+        
 
 def heavy_chain_seq(pdb_file):
     raw_fasta = pdb2fasta(pdb_file)
@@ -196,7 +196,7 @@ def _get_args():
     """Gets command line arguments"""
     constraint_generation_py_path = os.path.dirname(os.path.realpath(__file__))
     default_model_path = os.path.join(constraint_generation_py_path, 'models/fully_trained_model.p')
-    default_fasta_path = os.path.join(constraint_generation_py_path, 'data/antibody_dataset/fastas_testrun/1a0q_trunc.fasta')
+    default_fasta_path = os.path.join(constraint_generation_py_path, 'data/antibody_dataset/fastas_testrun/1a0q.fasta')
 
     desc = (
         '''
@@ -236,8 +236,9 @@ def _get_args():
 
 def print_run_params(args):
     print("Running sequence_to_loop")
-    print("     Config file : ", args.fasta_file)
-    print("  Work directory : ", args.model_file, flush=True)
+    print("       Config file : ",args.fasta_file)
+    print("    Work directory : ",args.model_file)
+    print("  Output directory : ",args.output_dir,flush=True)
     return
 
 
@@ -272,6 +273,8 @@ def _cli():
         print('Input file must either be a fasta file or a chothia numbered PDB file.')
         sys.exit(-1)
     seq = load_full_seq(fasta_file)
+    print("Ab sequence: ",seq)
+    print("H3 sequence: ",seq[h3[0]:h3[1]])
 
     with torch.no_grad():
         model = load_model(model_file)
@@ -290,17 +293,9 @@ def _cli():
     theta_constraints = theta_constraints[:topn_constraints] if topn_constraints > 0 else theta_constraints
     phi_constraints = phi_constraints[:topn_constraints] if topn_constraints > 0 else phi_constraints
 
-    write_constraint_files(output_dir, seq, dist_constraints, omega_constraints, theta_constraints, phi_constraints)
+    basename = os.path.basename(args.input_file).split('.')[0]
+    write_constraint_files(output_dir, basename, seq, dist_constraints, omega_constraints, theta_constraints, phi_constraints)
 
 
 if __name__ == '__main__':
     _cli()
-    """
-    import os
-    from tqdm import tqdm
-
-    dir_ = '/home/carlos/projects/deepH3-distances-orientations/deeph3/data/test_set'
-    for f in tqdm(os.listdir(dir_)):
-        h3_indices(dir_ + '/' + f)
-    """
-

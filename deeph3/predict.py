@@ -3,7 +3,7 @@ import torch.nn as nn
 import argparse
 import pickle
 import os
-from deeph3.util import load_model, get_probs_from_model, bin_matrix, RawTextArgumentDefaultsHelpFormatter
+from deeph3.util import load_model, get_probs_from_model, bin_matrix, RawTextArgumentDefaultsHelpFormatter, get_fasta_basename
 
 
 def predict(model, fasta_file, chain_delimiter=True, binning_method='max',
@@ -27,7 +27,7 @@ def _get_args():
     """Gets command line arguments"""
     predict_py_path = os.path.dirname(os.path.realpath(__file__))
     default_model_path = os.path.join(predict_py_path, 'models/fully_trained_model.p')
-    default_fasta_path = os.path.join(predict_py_path, 'data/antibody_dataset/fastas_testrun/1a0q_trunc.fasta')
+    default_fasta_path = os.path.join(predict_py_path, 'data/antibody_dataset/fastas_testrun/1a0q.fasta')
 
     desc = (
         '''
@@ -55,27 +55,28 @@ def _get_args():
                         help=('Flag to output the raw probability distributions '
                               'rather than the binned versions'))
     parser.add_argument('--out_file', type=str,
-                        default='model_out.p',
-                        help='The pickle file to save the model output to.')
+                        help='The pickle file to save the model output (default: derive from fasta file name).')
     parser.add_argument('--silent', type=bool,
                         default=False,
                         help='Flag to silence all run output')
     return parser.parse_args()
 
-def print_run_params(args):
+def print_run_params(args, out_file):
     print("Running deeph3")
     print("  Input sequence : ",args.fasta_file)
-    print("           Model : ",args.model_file, flush=True)
+    print("           Model : ",args.model_file)
+    print("     Output file : ",out_file, flush=True)
     return
 
 def _cli():
     """Command line interface for predict.py when it is run as a script"""
     args = _get_args()
-    print_run_params(args)
+    out_file = get_fasta_basename(args.fasta_file)+".p" if args.out_file is None else args.out_file
+    print_run_params(args, out_file)
     model = load_model(args.model_file)
     predictions = predict(model, args.fasta_file,
                           return_raw_probabilities=args.output_raw_probabilities)
-    pickle.dump(predictions, open(args.out_file, 'wb'))
+    pickle.dump(predictions, open(out_file, 'wb'))
 
 
 if __name__ == '__main__':
