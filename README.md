@@ -28,7 +28,7 @@ To train a model using a non-redundant set of bound and unbound antibodies
 downloaded from SAbDab, run:
 ```
 cd deeph3
-python train.py 
+python3 train.py 
 ```
 
 By default, structures are selected from SAbDab with paired VH/VL chains, a resolution of 3 A or better, and at most 99% sequence identity (ie, the set used in our [original preprint](https://doi.org/10.1101/2020.02.09.940254).)
@@ -41,7 +41,7 @@ Note that you can skip this step since the [model described in our paper is avai
 To predict the binned distance and angle matrices for a given antibody sequence (in a fasta file), run:
 ```
 cd deeph3
-python predict.py [--fasta_file [fasta file path] --model [model file path]]
+python3 predict.py [--fasta_file [fasta file path] --model [model file path]]
 ```
 The fasta file must have the following format:
 ```
@@ -61,7 +61,7 @@ Other arguments can be listed using the `--help` or `-h` option.
 To generate constraint files to use in Rosetta, run:
 ```
 cd deeph3
-python generate_constraints.py [--fasta_file [fasta file path] --model [model file path]]
+python3 generate_constraints.py [--fasta_file [fasta file path] --model [model file path]]
 ```
 The fasta file must have the following format:
 ```
