@@ -8,7 +8,6 @@
 1qfw_trunc.pdb
 3hmw_trunc.pdb
 6blh_trunc.pdb
-2r8s_trunc.pdb
 5cex_trunc.pdb
 4xmk_trunc.pdb
 6b0s_trunc.pdb
@@ -52,7 +51,6 @@
 4ye4_trunc.pdb
 4ypg_trunc.pdb
 5trp_trunc.pdb
-3ifl_trunc.pdb
 4nko_trunc.pdb
 4r8w_trunc.pdb
 1kcu_trunc.pdb
@@ -98,7 +96,6 @@
 4m7k_trunc.pdb
 5ifa_trunc.pdb
 4n0y_trunc.pdb
-1seq_trunc.pdb
 1fh5_trunc.pdb
 3qg7_trunc.pdb
 2pcp_trunc.pdb
@@ -121,7 +118,6 @@
 3ks0_trunc.pdb
 4jzj_trunc.pdb
 6az2_trunc.pdb
-2fb4_trunc.pdb
 5awn_trunc.pdb
 2zpk_trunc.pdb
 4kxz_trunc.pdb
@@ -216,7 +212,6 @@
 5i17_trunc.pdb
 1axs_trunc.pdb
 5alb_trunc.pdb
-3i9g_trunc.pdb
 5mp6_trunc.pdb
 3hae_trunc.pdb
 1rzf_trunc.pdb
@@ -310,7 +305,6 @@
 1ad0_trunc.pdb
 3g5x_trunc.pdb
 5w6g_trunc.pdb
-4h20_trunc.pdb
 2vq1_trunc.pdb
 3cxd_trunc.pdb
 1ap2_trunc.pdb
@@ -331,7 +325,6 @@
 5w08_trunc.pdb
 1jv5_trunc.pdb
 6mtr_trunc.pdb
-4f57_trunc.pdb
 5tlk_trunc.pdb
 4hxb_trunc.pdb
 2cju_trunc.pdb
@@ -373,7 +366,6 @@
 3sdy_trunc.pdb
 3uyr_trunc.pdb
 2ybr_trunc.pdb
-3go1_trunc.pdb
 1bm3_trunc.pdb
 1ad9_trunc.pdb
 5d71_trunc.pdb
@@ -450,7 +442,6 @@
 6iap_trunc.pdb
 4yfl_trunc.pdb
 5f6h_trunc.pdb
-2xwt_trunc.pdb
 25c8_trunc.pdb
 3pp3_trunc.pdb
 1c1e_trunc.pdb
@@ -501,7 +492,6 @@
 4xnz_trunc.pdb
 6fy3_trunc.pdb
 5c7x_trunc.pdb
-3oz9_trunc.pdb
 6bkc_trunc.pdb
 6al5_trunc.pdb
 5te7_trunc.pdb
@@ -562,7 +552,6 @@
 5ea0_trunc.pdb
 2fgw_trunc.pdb
 2xqb_trunc.pdb
-1mfa_trunc.pdb
 1yuh_trunc.pdb
 6b3d_trunc.pdb
 4wv1_trunc.pdb
@@ -591,10 +580,8 @@
 1ncd_trunc.pdb
 1fig_trunc.pdb
 4oqt_trunc.pdb
-2ypv_trunc.pdb
 6h3u_trunc.pdb
 5vk6_trunc.pdb
-2e27_trunc.pdb
 4f15_trunc.pdb
 4dke_trunc.pdb
 6n5b_trunc.pdb
@@ -785,7 +772,6 @@
 1rih_trunc.pdb
 4uil_trunc.pdb
 4qf1_trunc.pdb
-3nps_trunc.pdb
 4wuk_trunc.pdb
 3cmo_trunc.pdb
 4rfe_trunc.pdb
@@ -798,7 +784,6 @@
 2hfg_trunc.pdb
 6meh_trunc.pdb
 4lu5_trunc.pdb
-2d7t_trunc.pdb
 5drn_trunc.pdb
 4zso_trunc.pdb
 3l5x_trunc.pdb
@@ -808,7 +793,6 @@
 2dtm_trunc.pdb
 5otj_trunc.pdb
 2igf_trunc.pdb
-3lmj_trunc.pdb
 5hj3_trunc.pdb
 3uaj_trunc.pdb
 4h88_trunc.pdb
@@ -824,7 +808,6 @@
 3gi8_trunc.pdb
 6erx_trunc.pdb
 1b4j_trunc.pdb
-3p0y_trunc.pdb
 6dc7_trunc.pdb
 1t66_trunc.pdb
 6dfj_trunc.pdb
@@ -933,7 +916,6 @@
 6gku_trunc.pdb
 3piq_trunc.pdb
 3ab0_trunc.pdb
-3mxw_trunc.pdb
 5t33_trunc.pdb
 4l5f_trunc.pdb
 4pp2_trunc.pdb
@@ -957,7 +939,6 @@
 2xra_trunc.pdb
 2ipt_trunc.pdb
 6bfs_trunc.pdb
-3gnm_trunc.pdb
 2r56_trunc.pdb
 5mub_trunc.pdb
 4leo_trunc.pdb
@@ -969,7 +950,6 @@
 1k6q_trunc.pdb
 4cni_trunc.pdb
 1um4_trunc.pdb
-4nzu_trunc.pdb
 2z4q_trunc.pdb
 5czx_trunc.pdb
 3eoa_trunc.pdb
@@ -983,7 +963,6 @@
 1pkq_trunc.pdb
 6mtq_trunc.pdb
 4n8c_trunc.pdb
-1jfq_trunc.pdb
 1bj1_trunc.pdb
 4tsc_trunc.pdb
 5t5f_trunc.pdb
@@ -1085,7 +1064,6 @@
 2nyy_trunc.pdb
 1a7n_trunc.pdb
 1e4x_trunc.pdb
-3giz_trunc.pdb
 5jo4_trunc.pdb
 1ikf_trunc.pdb
 3bn9_trunc.pdb
@@ -1214,7 +1192,6 @@
 2rcs_trunc.pdb
 1kb5_trunc.pdb
 3ujj_trunc.pdb
-3liz_trunc.pdb
 1ibg_trunc.pdb
 5dlm_trunc.pdb
 5bzd_trunc.pdb
@@ -1222,7 +1199,6 @@
 3qrg_trunc.pdb
 1it9_trunc.pdb
 5xmh_trunc.pdb
-3e8u_trunc.pdb
 4wfe_trunc.pdb
 5tbd_trunc.pdb
 3dgg_trunc.pdb
@@ -1239,7 +1215,6 @@
 6df2_trunc.pdb
 4u1g_trunc.pdb
 4xxd_trunc.pdb
-2w60_trunc.pdb
 5vic_trunc.pdb
 3wxw_trunc.pdb
 5i1l_trunc.pdb
@@ -1330,12 +1305,10 @@
 6o3b_trunc.pdb
 5f96_trunc.pdb
 2g5b_trunc.pdb
-3g5y_trunc.pdb
 6ii9_trunc.pdb
 1plg_trunc.pdb
 5f6i_trunc.pdb
 4jo4_trunc.pdb
-1fns_trunc.pdb
 4jn1_trunc.pdb
 1dee_trunc.pdb
 3g5z_trunc.pdb
@@ -1370,7 +1343,6 @@
 6fax_trunc.pdb
 6nb5_trunc.pdb
 4nyl_trunc.pdb
-2adf_trunc.pdb
 5i8k_trunc.pdb
 6aru_trunc.pdb
 3bqu_trunc.pdb

@@ -55,7 +55,6 @@
 5ug0_trunc.pdb
 5o1r_trunc.pdb
 3hi1_trunc.pdb
-4hpy_trunc.pdb
 1dqd_trunc.pdb
 1ct8_trunc.pdb
 5tpp_trunc.pdb
