@@ -1,4 +1,6 @@
 # Deep H3 Loop Prediction
+**Note: We no longer recommend the use of DeepH3 for antibody modeling. Instead, we encourage you to try the new [DeepAb](https://github.com/RosettaCommons/DeepAb).**
+
 A deep residual network architecture to predict probability distributions of 
 inter-residue distances and angles for CDR H3 loops in antibodies. This work is protected by https://creativecommons.org/licenses/by-nc/3.0/. Please cite:
 
